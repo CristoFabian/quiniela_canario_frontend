@@ -1,0 +1,63 @@
+<div class="admin-shell" [class.sidebar-open]="sidebarOpen">
+
+  <header class="mobile-topbar">
+    <button type="button" class="hamburger" (click)="toggleSidebar()" aria-label="Abrir menú">
+      <span></span><span></span><span></span>
+    </button>
+    <span class="mobile-topbar__title">Panel Admin</span>
+    <app-notification-bell class="mobile-topbar__bell"></app-notification-bell>
+  </header>
+
+  <div class="sidebar-backdrop" (click)="closeSidebar()"></div>
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="assets/img/logo.png" alt="Logo Quiniela del Canario" class="brand-logo">
+      <div>
+        <span class="brand-name">La Quiniela del Canario</span>
+        <span class="brand-sub">Panel Admin</span>
+      </div>
+      <button type="button" class="sidebar-close" (click)="closeSidebar()" aria-label="Cerrar menú"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">
+        <span class="nav-icon"><i class="fa-solid fa-chart-column"></i></span><span>Dashboard</span>
+      </a>
+      <a routerLink="/admin/quinielas" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"><i class="fa-solid fa-bullseye"></i></span><span>Quinielas</span>
+      </a>
+      <a routerLink="/admin/pagos" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"><i class="fa-solid fa-credit-card"></i></span><span>Pagos</span>
+      </a>
+      <a routerLink="/admin/finanzas" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"><i class="fa-solid fa-sack-dollar"></i></span><span>Finanzas</span>
+      </a>
+      <a routerLink="/admin/catalogos" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"><i class="fa-solid fa-gear"></i></span><span>Catálogos</span>
+      </a>
+      <a routerLink="/admin/reglas" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"><i class="fa-solid fa-scroll"></i></span><span>Reglas</span>
+      </a>
+      <a routerLink="/admin/notificaciones" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon"><i class="fa-solid fa-bell"></i></span><span>Notificaciones</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <span class="user-avatar"><i class="fa-solid fa-user"></i></span>
+        <span class="user-name">{{ username }}</span>
+      </div>
+      <button class="btn-logout" (click)="logout()">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="desktop-topbar">
+      <app-notification-bell></app-notification-bell>
+    </div>
+    <router-outlet></router-outlet>
+  </main>
+
+</div>

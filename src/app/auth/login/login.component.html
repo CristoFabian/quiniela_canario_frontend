@@ -1,0 +1,148 @@
+<div class="login-wrapper">
+  <a routerLink="/" class="login-wrapper__brand">
+    <img src="assets/img/logo.png" alt="Logo Quiniela del Canario" class="login-wrapper__brand-logo" />
+    <span>La Quiniela del Canario</span>
+  </a>
+
+  <div class="login-card">
+    <div class="login-card__header">
+      <img src="assets/img/logo.png" alt="Logo Quiniela del Canario" class="login-card__logo">
+      <h1 class="login-card__title">Bienvenido</h1>
+      <p class="login-card__subtitle">Inicia sesión para continuar</p>
+    </div>
+
+    <form class="login-card__form" [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      @if (errorMsg) {
+        <div class="login-card__alert">
+          {{ errorMsg }}
+          @if (credencialesIncorrectas) {
+            <button type="button" class="login-card__link-btn" (click)="abrirReset()">¿Olvidaste tu contraseña?</button>
+          }
+        </div>
+      }
+
+      @if (cuentaInactiva) {
+        <div class="login-card__alert login-card__alert--inactiva">
+          Tu cuenta se encuentra desactivada.
+          <a [href]="whatsappUrl" target="_blank" rel="noopener">Contacta al administrador vía WhatsApp para que reactive tu cuenta</a>.
+        </div>
+      }
+
+      <!-- Usuario -->
+      <div class="field">
+        <label class="field__label" for="username">Usuario</label>
+        <input
+          id="username"
+          class="field__input"
+          type="text"
+          formControlName="username"
+          placeholder="Tu nombre de usuario"
+          autocomplete="username"
+        />
+        @if (username.invalid && username.touched) {
+          <span class="field__error">El usuario es obligatorio.</span>
+        }
+      </div>
+
+      <!-- Contraseña -->
+      <div class="field">
+        <label class="field__label" for="password">Contraseña</label>
+        <input
+          id="password"
+          class="field__input"
+          [type]="showPassword ? 'text' : 'password'"
+          formControlName="password"
+          placeholder="Tu contraseña"
+          autocomplete="current-password"
+        />
+        @if (password.invalid && password.touched) {
+          <span class="field__error">Mínimo 6 caracteres.</span>
+        }
+      </div>
+
+      <!-- Submit -->
+      <button class="btn-primary" type="submit" [disabled]="loading">
+        @if (loading) {
+          <span class="spinner"></span> Entrando...
+        } @else {
+          Entrar
+        }
+      </button>
+
+    </form>
+
+    <p class="login-card__footer">
+      ¿No tienes cuenta?
+      <a routerLink="/register" class="login-card__link">Regístrate</a>
+    </p>
+  </div>
+
+  @if (mostrarReset) {
+    <div class="reset-overlay" (click)="cerrarReset()">
+      <div class="reset-modal" (click)="$event.stopPropagation()">
+        <button type="button" class="reset-modal__close" (click)="cerrarReset()" aria-label="Cerrar">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <h2 class="reset-modal__title">Recuperar contraseña</h2>
+        <p class="reset-modal__subtitle">Verifica tu usuario y teléfono registrado para establecer una nueva contraseña.</p>
+
+        <form class="reset-modal__form" [formGroup]="resetForm" (ngSubmit)="enviarReset()">
+
+          @if (resetError) {
+            <div class="login-card__alert">{{ resetError }}</div>
+          }
+          @if (resetExito) {
+            <div class="reset-modal__alert-success">{{ resetExito }}</div>
+          }
+
+          <div class="field">
+            <label class="field__label" for="rUsername">Usuario</label>
+            <input id="rUsername" class="field__input" type="text" formControlName="username" placeholder="Tu nombre de usuario">
+            @if (rUsername.invalid && rUsername.touched) {
+              <span class="field__error">El usuario es obligatorio.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="rTelefono">Teléfono registrado</label>
+            <input id="rTelefono" class="field__input" type="tel" formControlName="telefono"
+                   placeholder="Ej. 5512345678" maxlength="10" inputmode="numeric">
+            @if (rTelefono.errors?.['required'] && rTelefono.touched) {
+              <span class="field__error">El teléfono es obligatorio.</span>
+            }
+            @if (rTelefono.errors?.['pattern'] && rTelefono.touched) {
+              <span class="field__error">Debe tener exactamente 10 dígitos.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="rNuevaPassword">Nueva contraseña</label>
+            <input id="rNuevaPassword" class="field__input" type="password" formControlName="nuevaPassword" placeholder="Mínimo 6 caracteres">
+            @if (rNuevaPassword.invalid && rNuevaPassword.touched) {
+              <span class="field__error">Mínimo 6 caracteres.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="rConfirmarPassword">Repite la nueva contraseña</label>
+            <input id="rConfirmarPassword" class="field__input" type="password" formControlName="confirmarPassword" placeholder="Repite tu nueva contraseña">
+            @if (resetForm.errors?.['passwordMismatch'] && rConfirmarPassword.touched) {
+              <span class="field__error">Las contraseñas no coinciden.</span>
+            }
+          </div>
+
+          <button class="btn-primary" type="submit" [disabled]="resetLoading">
+            @if (resetLoading) {
+              <span class="spinner"></span> Guardando...
+            } @else {
+              Restablecer contraseña
+            }
+          </button>
+
+        </form>
+      </div>
+    </div>
+  }
+</div>

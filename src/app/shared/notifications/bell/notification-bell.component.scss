@@ -1,0 +1,211 @@
+@use 'breakpoints' as bp;
+
+$accent: #4fc3f7;
+$panel-bg: #131328;
+$border: rgba(255, 255, 255, 0.08);
+$text: #e0e0e0;
+$text-muted: #8a8aa8;
+
+.bell-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.bell-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: $text;
+  font-size: 1.15rem;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.2s;
+
+  &:hover { background: rgba(255, 255, 255, 0.08); }
+}
+
+.bell-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #ff5252;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+}
+
+.bell-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 360px;
+  max-width: 90vw;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: $panel-bg;
+  border: 1px solid $border;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  z-index: 1300;
+  overflow: hidden;
+
+  @include bp.mobile {
+    width: 92vw;
+    right: -0.5rem;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid $border;
+    font-weight: 700;
+    color: $text;
+    font-size: 0.9rem;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+  }
+
+  &__list {
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  &__footer {
+    padding: 0.7rem;
+    border: none;
+    border-top: 1px solid $border;
+    background: transparent;
+    color: $accent;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover { background: rgba(79, 195, 247, 0.08); }
+  }
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: $accent;
+  font-size: 0.72rem;
+  cursor: pointer;
+  padding: 0.25rem 0.45rem;
+  border-radius: 6px;
+  transition: background 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    text-decoration: none;
+    background: rgba(79, 195, 247, 0.08);
+  }
+
+  &--danger {
+    color: #ff8a80;
+
+    &:hover {
+      background: rgba(255, 138, 128, 0.08);
+    }
+  }
+}
+
+.bell-empty {
+  padding: 1.4rem 1rem;
+  text-align: center;
+  color: $text-muted;
+  font-size: 0.82rem;
+}
+
+.bell-item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-bottom: 1px solid $border;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+
+  &:hover { background: rgba(255, 255, 255, 0.04); }
+  &.unread { background: rgba(79, 195, 247, 0.06); }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 0.9rem;
+
+    &.notif-ok     { color: #4caf50; }
+    &.notif-warn   { color: #f0c040; }
+    &.notif-danger { color: #ff5252; }
+    &.notif-info   { color: $accent; }
+    &.notif-gold   { color: #ffd700; }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  &__titulo {
+    color: $text;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  &__mensaje {
+    color: $text-muted;
+    font-size: 0.76rem;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__fecha {
+    color: $text-muted;
+    font-size: 0.68rem;
+    margin-top: 0.1rem;
+  }
+
+  &__dot {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $accent;
+    margin-top: 0.3rem;
+  }
+}

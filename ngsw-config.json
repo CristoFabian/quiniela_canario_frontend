@@ -1,0 +1,72 @@
+{
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app-shell",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/favicon.ico",
+          "/index.html",
+          "/manifest.webmanifest",
+          "/assets/**/*.png",
+          "/assets/**/*.jpg",
+          "/assets/**/*.jpeg",
+          "/assets/**/*.svg",
+          "/assets/**/*.webp",
+          "/assets/**/*.gif",
+          "/assets/fonts/*",
+          "/*.css",
+          "/*.js"
+        ]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "api-public",
+      "urls": [
+        "/api/auth/**",
+        "/api/public/**",
+        "/api/config/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 50,
+        "maxAge": "1d",
+        "timeout": "10s"
+      }
+    },
+    {
+      "name": "api-quinielas",
+      "urls": [
+        "/api/quinielas/**",
+        "/api/partidos/**",
+        "/api/pronosticos/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 100,
+        "maxAge": "6h",
+        "timeout": "15s"
+      }
+    },
+    {
+      "name": "api-usuarios",
+      "urls": [
+        "/api/usuarios/**",
+        "/api/perfil/**",
+        "/api/pagos/**",
+        "/api/premios/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 50,
+        "maxAge": "1h",
+        "timeout": "10s"
+      }
+    }
+  ]
+}

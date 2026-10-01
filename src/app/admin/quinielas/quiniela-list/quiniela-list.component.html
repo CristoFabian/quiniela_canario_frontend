@@ -1,0 +1,126 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1><i class="fa-solid fa-bullseye"></i> Quinielas</h1>
+      <p>Gestión de todas las quinielas del sistema</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="cargar()"><i class="fa-solid fa-arrows-rotate"></i> Actualizar</button>
+      <a routerLink="/admin/quinielas/nueva" class="btn-primary"> <i class="fa-solid fa-plus"></i> Agregar</a>
+    </div>
+  </div>
+
+  @if (error) {
+    <div class="alert-error">{{ error }}</div>
+  }
+
+  @if (cargando) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando quinielas...</p>
+    </div>
+  } @else if (quinielas.length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon"><i class="fa-solid fa-bullseye"></i></span>
+      <p>No hay quinielas creadas aún</p>
+      <a routerLink="/admin/quinielas/nueva" class="btn-primary">Crear primera quiniela</a>
+    </div>
+  } @else {
+
+    <!-- Barra de filtros -->
+    <div class="filter-bar">
+      <div class="filter-search">
+        <span class="filter-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+        <input type="text"
+               class="filter-input"
+               placeholder="Buscar por nombre..."
+               [(ngModel)]="filtroNombre"
+               (ngModelChange)="onFiltroChange()" />
+        @if (filtroNombre) {
+          <button class="filter-clear" (click)="filtroNombre = ''; onFiltroChange()" title="Limpiar">×</button>
+        }
+      </div>
+      <div class="filter-estado">
+        <select class="filter-select" [(ngModel)]="filtroEstado" (ngModelChange)="onFiltroChange()">
+          <option value="">Todos los estados</option>
+          @for (e of ESTADOS; track e) {
+            <option [value]="e">{{ e }}</option>
+          }
+        </select>
+      </div>
+      @if (filtroNombre || filtroEstado) {
+        <button class="btn-limpiar" (click)="filtroNombre = ''; filtroEstado = ''; onFiltroChange()">
+          × Limpiar filtros
+        </button>
+      }
+      <span class="filter-count">
+        {{ quinielasFiltradas.length }} de {{ quinielas.length }}
+      </span>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Costo</th>
+            <th>Bolsa</th>
+            <th>Partidos</th>
+            <th>Inicio</th>
+            <th>Cierre</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (quinielasFiltradas.length === 0) {
+            <tr>
+              <td colspan="9" class="empty-filter-row">
+                <i class="fa-solid fa-magnifying-glass"></i> No hay quinielas que coincidan con los filtros
+              </td>
+            </tr>
+          }
+          @for (q of quinielasPaginadas; track q.id) {
+            <tr>
+              <td class="id-col" data-label="#">{{ q.id }}</td>
+              <td class="td-nombre" data-label="Nombre">
+                <div class="q-nombre">{{ q.nombre }}</div>
+                @if (q.descripcion) {
+                  <div class="q-desc">{{ q.descripcion }}</div>
+                }
+              </td>
+              <td data-label="Costo">$ {{ q.costo | number:'1.2-2' }}</td>
+              <td data-label="Bolsa">$ {{ (q.bolsaAcumulada ?? 0) | number:'1.2-2' }}</td>
+              <td data-label="Partidos">
+                <span class="partidos-badge" [class.completo]="q.totalPartidos >= 8">
+                  {{ q.totalPartidos }}/8
+                </span>
+              </td>
+              <td class="fecha-col" data-label="Inicio">{{ q.fechaInicio | date:'dd/MM/yy h:mm a' }}</td>
+              <td class="fecha-col" data-label="Cierre">{{ q.fechaCierre | date:'dd/MM/yy h:mm a' }}</td>
+              <td data-label="Estado">
+                <span class="badge" [ngClass]="estadoClass(q.estado)">{{ q.estado }}</span>
+              </td>
+              <td data-label="Acciones">
+                <a [routerLink]="['/admin/quinielas', q.id]" class="btn-action">Ver →</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPaginas > 1) {
+      <div class="quinielas-paginacion">
+        <button class="btn-pag" [disabled]="paginaActual === 1"
+                (click)="irAPagina(paginaActual - 1)"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
+        <span class="pag-info">Página {{ paginaActual }} de {{ totalPaginas }}</span>
+        <button class="btn-pag" [disabled]="paginaActual === totalPaginas"
+                (click)="irAPagina(paginaActual + 1)">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    }
+  }
+
+</div>

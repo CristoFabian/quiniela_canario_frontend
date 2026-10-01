@@ -1,0 +1,256 @@
+<div class="page">
+
+  <!-- ── Éxito ──────────────────────────────────────────────────────── -->
+  @if (enviado) {
+    <div class="success-panel">
+      <div class="success-icon"><i class="fa-solid fa-circle-check fa-ok"></i></div>
+      <h2>¡Pago registrado!</h2>
+      @if (pagadoConSaldo) {
+        <p>
+          Tu pago <strong>#{{ pagoId }}</strong> se cubrió con tu saldo a favor.<br>
+          Tus jugadas ya están activas.
+        </p>
+      } @else {
+        <p>
+          Tu pago <strong>#{{ pagoId }}</strong> fue enviado correctamente.<br>
+          La administración revisará tu comprobante y activará tus jugadas.
+        </p>
+        <div class="success-note">
+          <span><i class="fa-regular fa-clock"></i></span>
+          <span><strong>Tus jugadas NO están activas todavía.</strong><br>
+          Recibirás confirmación cuando el pago sea aprobado.</span>
+        </div>
+      }
+      <button class="btn-primary" (click)="irAMisPagos()">Ver mis pagos →</button>
+    </div>
+  }
+
+  @if (!enviado) {
+
+    <!-- ── Cabecera ─────────────────────────────────────────────────── -->
+    <div class="page-header">
+      <div>
+        <h1><i class="fa-solid fa-credit-card"></i> Registrar Pago</h1>
+        <p class="page-sub">Selecciona tus tickets y sube tu comprobante de transferencia</p>
+      </div>
+      <a routerLink="/jugador/mis-jugadas" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Mis Jugadas</a>
+    </div>
+
+    @if (error) { <div class="alert-error">{{ error }}</div> }
+
+    <!-- ── Loading ──────────────────────────────────────────────────── -->
+    @if (cargando) {
+      <div class="loading-state"><div class="spinner"></div><p>Cargando tus jugadas...</p></div>
+    } @else if (jugadasCreadas.length === 0) {
+
+      <!-- ── Sin jugadas pagables ─────────────────────────────────────── -->
+      <div class="empty-state">
+        <span><i class="fa-solid fa-ticket"></i></span>
+        <h3>Sin jugadas por pagar</h3>
+        <p>No tienes jugadas en <strong>Borrador</strong>. Ve a
+          <a routerLink="/jugador/quinielas">Quinielas</a> y crea una jugada primero.</p>
+      </div>
+
+    } @else {
+
+      <div class="pago-layout">
+
+        <!-- ═══════════════════════════════════════════════════════════
+             COLUMNA IZQUIERDA — selección de tickets + monto
+        ════════════════════════════════════════════════════════════════ -->
+        <div class="pago-left">
+
+          <!-- Paso 1: seleccionar tickets -->
+          <section class="card-section">
+            <h2 class="section-title"><span class="step">1</span> ¿Qué tickets vas a pagar?</h2>
+            <p class="section-hint">Selecciona todos los que incluirás en esta transferencia.</p>
+
+            <div class="jugadas-check-list">
+              @for (j of jugadasCreadas; track j.id) {
+                <label class="jugada-check-item" [class.selected]="seleccionadas.has(j.id)">
+                  <input type="checkbox"
+                         [checked]="seleccionadas.has(j.id)"
+                         (change)="toggleSeleccion(j.id)">
+                  <div class="jugada-check-info">
+                    <div class="jugada-check-header">
+                      <span class="ticket-num">#{{ j.id }}</span>
+                      <span class="quiniela-name">{{ j.quinielaNombre }}</span>
+                    </div>
+                    <div class="jugada-check-meta">
+                      <span><i class="fa-solid fa-chart-column"></i> {{ j.totalPronosticos }} pronóstico{{ j.totalPronosticos !== 1 ? 's' : '' }}</span>
+                      @if (j.costoQuiniela) {
+                        <span class="costo-tag"><i class="fa-solid fa-sack-dollar"></i> ${{ j.costoQuiniela }} MXN</span>
+                      }
+                    </div>
+                    @if (jugadaTienePronosticosIncompletos(j)) {
+                      <div class="jugada-warning">Tu jugada no tiene todos los pronosticos requeridos.</div>
+                    }
+                  </div>
+                </label>
+              }
+            </div>
+          </section>
+
+          <!-- Paso 2: confirmar monto -->
+          <section class="card-section">
+            <h2 class="section-title"><span class="step">2</span> ¿Cuánto vas a transferir?</h2>
+            <p class="section-hint">El monto se calcula automáticamente.</p>
+
+            <div class="monto-field">
+              <span class="monto-prefix">$</span>
+              <input type="number"
+                     min="0"
+                     step="0.01"
+                     [(ngModel)]="monto"
+                     [disabled]="true"
+                     class="input-monto"
+                     placeholder="0.00">
+              <span class="monto-suffix">MXN</span>
+            </div>
+
+            @if (seleccionadas.size > 0) {
+              <p class="monto-resumen">
+                {{ seleccionadas.size }} ticket{{ seleccionadas.size !== 1 ? 's' : '' }} seleccionado{{ seleccionadas.size !== 1 ? 's' : '' }}
+                @if (monto > 0) { — Total: <strong>${{ monto | number:'1.2-2' }} MXN</strong> }
+              </p>
+            } @else {
+              <p class="monto-resumen">Selecciona tus tickets arriba para calcular el monto a transferir.</p>
+            }
+          </section>
+
+          @if (mostrarSaldoAFavor) {
+            <section class="card-section">
+              <h2 class="section-title"><i class="fa-solid fa-sack-dollar"></i> Saldo a favor</h2>
+              <p class="section-hint">Tienes ${{ saldoAFavor | number:'1.2-2' }} MXN disponibles de pagos verificados anteriormente.</p>
+              <label class="whatsapp-checkbox" [class.disabled]="!puedeUsarSaldoAFavor">
+                <input type="checkbox"
+                       [checked]="usarSaldoAFavor"
+                       [disabled]="!puedeUsarSaldoAFavor"
+                       (change)="toggleUsarSaldoAFavor()">
+                Usar saldo a favor
+              </label>
+              @if (!puedeUsarSaldoAFavor && monto > 0) {
+                <p class="section-hint">Tu saldo no alcanza para cubrir el monto seleccionado.</p>
+              }
+            </section>
+          }
+
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             COLUMNA DERECHA — comprobante + aviso + acción
+        ════════════════════════════════════════════════════════════════ -->
+        <div class="pago-right">
+
+          <!-- Paso 3: subir comprobante -->
+          <section class="card-section" [class.disabled-section]="usarSaldoAFavor">
+            <h2 class="section-title"><span class="step">3</span> Sube tu comprobante <span class="opcional">(Puedes enviarlo vía WhatsApp)</span></h2>
+            <p class="section-hint">Captura de pantalla, imagen o PDF de tu transferencia. Máx. 5 MB.</p>
+
+            @if (!usarSaldoAFavor) {
+              <p class="concepto-obligatorio">
+                <i class="fa-solid fa-circle-info"></i>
+                Concepto obligatorio de transferencia: <strong>{{ conceptoTransferencia }}</strong>
+              </p>
+            }
+
+            @if (usarSaldoAFavor) {
+              <div class="aviso-box">
+                <span class="aviso-icon"><i class="fa-solid fa-sack-dollar"></i></span>
+                <div>
+                  <strong>Pagarás con tu saldo a favor.</strong>
+                  <p>No necesitas comprobante: el monto se descontará de tu saldo verificado.</p>
+                </div>
+              </div>
+            } @else if (!comprobante) {
+              <div class="dropzone"
+                   [class.drag-over]="isDragOver"
+                   (drop)="onDrop($event)"
+                   (dragover)="onDragOver($event)"
+                   (dragleave)="onDragLeave()"
+                   (click)="fileInput.click()">
+                <div class="dropzone-icon"><i class="fa-solid fa-paperclip"></i></div>
+                <p>Arrastra aquí o <strong>haz clic para seleccionar</strong></p>
+                <p class="dropzone-hint">JPG, PNG o PDF — máx. 5 MB</p>
+                <input #fileInput type="file" accept=".jpg,.jpeg,.png,.pdf"
+                       (change)="onFileInput($event)" style="display:none">
+              </div>
+            } @else {
+              <div class="file-preview">
+                @if (previewUrl) {
+                  <img [src]="previewUrl" alt="Comprobante" class="preview-img">
+                } @else {
+                  <div class="pdf-preview"><i class="fa-regular fa-file"></i> {{ comprobante.name }}</div>
+                }
+                <button class="btn-remove-file" (click)="quitarComprobante()"><i class="fa-solid fa-xmark"></i> Quitar</button>
+              </div>
+            }
+
+            @if (errorArchivo) {
+              <div class="alert-error">{{ errorArchivo }}</div>
+            }
+
+            @if (!usarSaldoAFavor) {
+              <label class="whatsapp-checkbox" [class.disabled]="!!comprobante">
+                <input type="checkbox"
+                       [checked]="comprobanteViaWhatsapp"
+                       [disabled]="!!comprobante"
+                       (change)="toggleComprobanteViaWhatsapp()">
+                Envié mi comprobante vía WhatsApp
+              </label>
+            }
+          </section>
+
+          <!-- Sin comprobante digital: WhatsApp -->
+          @if (!usarSaldoAFavor) {
+            <div class="whatsapp-box">
+              <p>¿No tienes comprobante digital ahora? Pregunta por los detalles de la transferencia por WhatsApp a la administración:</p>
+              <a [href]="enlaceWhatsApp" target="_blank" rel="noopener" class="btn-whatsapp"
+                 (click)="validarWhatsApp($event)">
+                <i class="fa-brands fa-whatsapp"></i> Contactar por WhatsApp
+              </a>
+              @if (errorWhatsApp) {
+                <div class="alert-error whatsapp-error">{{ errorWhatsApp }}</div>
+              }
+            </div>
+          }
+
+          <!-- Aviso clave: jugada no activa aún -->
+          @if (!usarSaldoAFavor) {
+            <div class="aviso-box">
+              <span class="aviso-icon"><i class="fa-regular fa-clock"></i></span>
+              <div>
+                <strong>Tu jugada NO estará activa todavía.</strong>
+                <p>Después de enviar, la administración revisará tu comprobante y aprobará el pago. Solo entonces tu ticket quedará activo.</p>
+              </div>
+            </div>
+          } @else {
+            <div class="aviso-box aviso-box--success">
+              <span class="aviso-icon"><i class="fa-solid fa-circle-check fa-ok"></i></span>
+              <div>
+                <strong>Tu jugada quedará activa de inmediato.</strong>
+                <p>Al pagar con saldo a favor no se necesita revisión: el monto ya fue verificado por la administración.</p>
+              </div>
+            </div>
+          }
+
+          <!-- Botón enviar -->
+          <button class="btn-enviar"
+                  [disabled]="ninguntSeleccionada || enviando"
+                  (click)="enviar()">
+            @if (enviando) {
+              <span class="spinner-sm"></span> Enviando...
+            } @else {
+              Registrar pago <i class="fa-solid fa-arrow-right"></i>
+            }
+          </button>
+
+          @if (ninguntSeleccionada) {
+            <p class="hint-selecciona">Selecciona al menos un ticket para continuar.</p>
+          }
+
+        </div>
+      </div>
+    }
+  }
+</div>

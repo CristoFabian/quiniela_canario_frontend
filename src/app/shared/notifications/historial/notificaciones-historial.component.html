@@ -1,0 +1,64 @@
+<div class="page">
+
+  <div class="page-header">
+    <h1><i class="fa-solid fa-bell"></i> Notificaciones</h1>
+    <p class="page-sub">Historial de avisos de tu cuenta</p>
+  </div>
+
+  <div class="toolbar">
+    <div class="filtros">
+      <button type="button" class="chip" [class.active]="filtro === 'todas'" (click)="cambiarFiltro('todas')">Todas</button>
+      <button type="button" class="chip" [class.active]="filtro === 'no-leidas'" (click)="cambiarFiltro('no-leidas')">No leídas</button>
+    </div>
+    <button type="button" class="btn-secundario" (click)="marcarTodasLeidas()">
+      <i class="fa-solid fa-check-double"></i> Marcar todas como leídas
+    </button>
+  </div>
+
+  @if (error) { <div class="alert-error">{{ error }}</div> }
+
+  @if (cargando) {
+    <div class="loading-state"><div class="spinner"></div><p>Cargando notificaciones...</p></div>
+  } @else if (grupos.length === 0) {
+    <div class="empty-state">
+      <span><i class="fa-solid fa-bell-slash"></i></span>
+      <p>No tienes notificaciones {{ filtro === 'no-leidas' ? 'sin leer' : '' }}.</p>
+    </div>
+  } @else {
+    @for (grupo of grupos; track grupo.etiqueta) {
+      <div class="grupo">
+        <h2 class="grupo-titulo">{{ grupo.etiqueta }}</h2>
+        <div class="notif-list">
+          @for (n of grupo.items; track n.id) {
+            <button type="button" class="notif-card" [class.unread]="!n.leida" (click)="irANotificacion(n)">
+              <span class="notif-icon" [class]="display[n.tipo].colorClass">
+                <i [class]="display[n.tipo].icon"></i>
+              </span>
+              <span class="notif-body">
+                <span class="notif-titulo">{{ n.titulo }}</span>
+                <span class="notif-mensaje">{{ n.mensaje }}</span>
+                <span class="notif-fecha">{{ n.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span>
+              </span>
+              <span class="notif-estado" [class.leida]="n.leida">
+                {{ n.leida ? 'Leída' : 'No leída' }}
+              </span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    @if (totalPaginas > 1) {
+      <div class="paginador">
+        <button type="button" [disabled]="pagina === 0" (click)="irAPagina(pagina - 1)">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <span>Página {{ pagina + 1 }} de {{ totalPaginas }} ({{ totalElementos }} en total)</span>
+        <button type="button" [disabled]="pagina >= totalPaginas - 1" (click)="irAPagina(pagina + 1)">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+    }
+  }
+
+</div>

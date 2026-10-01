@@ -1,0 +1,215 @@
+<div class="page">
+
+  <!-- ── Cabecera ─────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <h1><i class="fa-solid fa-gear"></i> Configuración de Catálogos</h1>
+      <p class="page-sub">Gestiona tipos de pronóstico y sus opciones</p>
+    </div>
+    <button class="btn-primary" (click)="abrirCrearTipo()">+ Nuevo Tipo</button>
+  </div>
+
+  @if (error) { <div class="alert-error">{{ error }}</div> }
+
+  <!-- ── Formulario Tipo ───────────────────────────────────────── -->
+  @if (mostrarFormTipo) {
+    <div class="form-card">
+      <h3>{{ editandoTipo ? 'Editar' : 'Nuevo' }} Tipo de Pronóstico</h3>
+      @if (errorTipo) { <div class="alert-error">{{ errorTipo }}</div> }
+      <form [formGroup]="tipoForm" (ngSubmit)="guardarTipo()">
+        <div class="fields-row">
+          <div class="field">
+            <label>Código <span class="req">*</span></label>
+            <input type="text" formControlName="codigo" placeholder="Ej. GOLES" style="text-transform:uppercase" />
+            @if (tf['codigo'].touched && tf['codigo'].errors?.['required']) {
+              <span class="field-error">Obligatorio</span>
+            }
+            @if (tf['codigo'].touched && tf['codigo'].errors?.['maxlength']) {
+              <span class="field-error">Máx. 30 caracteres</span>
+            }
+          </div>
+          <div class="field">
+            <label>Nombre <span class="req">*</span></label>
+            <input type="text" formControlName="nombre" placeholder="Ej. Goles totales" />
+            @if (tf['nombre'].touched && tf['nombre'].errors?.['required']) {
+              <span class="field-error">Obligatorio</span>
+            }
+          </div>
+          <div class="field">
+            <label>Puntos <span class="req">*</span></label>
+            <input type="number" formControlName="puntos" min="1" />
+            @if (tf['puntos'].touched && tf['puntos'].errors?.['min']) {
+              <span class="field-error">Mínimo 1 punto</span>
+            }
+          </div>
+        </div>
+        <div class="field full">
+          <label>Descripción</label>
+          <input type="text" formControlName="descripcion" placeholder="Descripción opcional" />
+        </div>
+        <div class="field checkbox-field">
+          <label><input type="checkbox" formControlName="activo" /> Activo</label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="cancelarTipo()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="guardandoTipo">
+            @if (guardandoTipo) { <span class="spinner-sm"></span> Guardando... }
+            @else { Guardar Tipo }
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- ── Lista de Tipos ────────────────────────────────────────── -->
+  @if (cargando) {
+    <div class="loading-state"><div class="spinner"></div><p>Cargando catálogos...</p></div>
+  } @else if (tipos.length === 0) {
+    <div class="empty-state">
+      <span><i class="fa-solid fa-clipboard-list"></i></span>
+      <p>No hay tipos de pronóstico. Crea el primero.</p>
+    </div>
+  } @else {
+    <div class="tipos-list">
+      @for (t of tipos; track t.id) {
+        <div class="tipo-card" [class.inactive]="!t.activo">
+
+          <!-- Cabecera del tipo (acordeón) -->
+          <div class="tipo-header" (click)="toggleTipo(t.id)">
+            <div class="tipo-left">
+              <span class="tipo-codigo">{{ t.codigo }}</span>
+              <div class="tipo-info">
+                <span class="tipo-nombre">{{ t.nombre }}</span>
+                @if (t.descripcion) {
+                  <span class="tipo-desc">{{ t.descripcion }}</span>
+                }
+              </div>
+            </div>
+            <div class="tipo-right">
+              <span class="badge-pts">{{ t.puntos }} pt{{ t.puntos !== 1 ? 's' : '' }}</span>
+              <span class="badge-ops">{{ t.totalOpciones }} opcion{{ t.totalOpciones !== 1 ? 'es' : '' }}</span>
+              <span class="badge-status" [class.active]="t.activo" [class.inactive]="!t.activo">
+                {{ t.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+              <div class="tipo-actions" (click)="$event.stopPropagation()">
+                <button class="btn-icon" title="Editar" (click)="abrirEditarTipo(t, $event)"><i class="fa-solid fa-pen"></i></button>
+                @if (t.activo) {
+                  <button class="btn-icon btn-icon--danger" title="Desactivar" (click)="desactivarTipo(t, $event)"><i class="fa-solid fa-ban"></i></button>
+                } @else {
+                  <button class="btn-icon btn-icon--success" title="Reactivar" (click)="reactivarTipo(t, $event)"><i class="fa-solid fa-circle-check fa-ok"></i></button>
+                }
+              </div>
+              <span class="toggle-icon">{{ tipoAbierto === t.id ? '▲' : '▼' }}</span>
+            </div>
+          </div>
+
+          <!-- Panel expandible: opciones -->
+          @if (tipoAbierto === t.id) {
+            <div class="tipo-panel">
+
+              @if (errorOpcion) { <div class="alert-error small">{{ errorOpcion }}</div> }
+
+              <div class="opciones-header">
+                <h4>Opciones</h4>
+                @if (t.activo) {
+                  <button class="btn-sm-primary" (click)="abrirCrearOpcion(t.id)">+ Nueva Opción</button>
+                }
+              </div>
+
+              <!-- Formulario opción -->
+              @if (mostrarFormOpcion === t.id) {
+                <div class="opcion-form-card">
+                  <h5>{{ editandoOpcion ? 'Editar' : 'Nueva' }} Opción</h5>
+                  <form [formGroup]="opcionForm" (ngSubmit)="guardarOpcion(t.id)">
+                    <div class="fields-row">
+                      <div class="field">
+                        <label>Código <span class="req">*</span></label>
+                        <input type="text" formControlName="codigo" placeholder="Ej. GOL_0" style="text-transform:uppercase" />
+                        @if (of['codigo'].touched && of['codigo'].errors?.['required']) {
+                          <span class="field-error">Obligatorio</span>
+                        }
+                      </div>
+                      <div class="field">
+                        <label>Descripción <span class="req">*</span></label>
+                        <input type="text" formControlName="descripcion" placeholder="Ej. 0 goles" />
+                        @if (of['descripcion'].touched && of['descripcion'].errors?.['required']) {
+                          <span class="field-error">Obligatorio</span>
+                        }
+                      </div>
+                      <div class="field field--sm">
+                        <label>Val. Mín</label>
+                        <input type="number" formControlName="valorMin" min="0" placeholder="—" />
+                      </div>
+                      <div class="field field--sm">
+                        <label>Val. Máx</label>
+                        <input type="number" formControlName="valorMax" min="0" placeholder="null = ∞" />
+                      </div>
+                    </div>
+                    <div class="field checkbox-field">
+                      <label><input type="checkbox" formControlName="activo" /> Activa</label>
+                    </div>
+                    <div class="form-actions">
+                      <button type="button" class="btn-secondary" (click)="cancelarOpcion()">Cancelar</button>
+                      <button type="submit" class="btn-primary" [disabled]="guardandoOpcion">
+                        @if (guardandoOpcion) { <span class="spinner-sm"></span> Guardando... }
+                        @else { Guardar Opción }
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              }
+
+              <!-- Tabla de opciones -->
+              @if (cargandoOpciones === t.id) {
+                <div class="loading-mini"><div class="spinner-sm-inline"></div> Cargando opciones...</div>
+              } @else if ((opcionesPorTipo[t.id] ?? []).length === 0) {
+                <p class="empty-ops">Sin opciones. Agrega la primera.</p>
+              } @else {
+                <div class="table-wrapper">
+                <table class="opciones-table">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Descripción</th>
+                      <th>Rango</th>
+                      <th>Estado</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (o of opcionesPorTipo[t.id]; track o.id) {
+                      <tr [class.row-inactive]="!o.activo">
+                        <td data-label="Código"><code class="cod">{{ o.codigo }}</code></td>
+                        <td data-label="Descripción">{{ o.descripcion }}</td>
+                        <td class="rango" data-label="Rango">{{ rangoLabel(o) }}</td>
+                        <td data-label="Estado">
+                          <span class="badge-status" [class.active]="o.activo" [class.inactive]="!o.activo">
+                            {{ o.activo ? 'Activa' : 'Inactiva' }}
+                          </span>
+                        </td>
+                        <td class="td-actions" data-label="Acciones">
+                          @if (t.activo) {
+                            <button class="btn-icon" title="Editar" (click)="abrirEditarOpcion(o)"><i class="fa-solid fa-pen"></i></button>
+                            @if (o.activo) {
+                              <button class="btn-icon btn-icon--danger" title="Desactivar" (click)="desactivarOpcion(o, t.id)"><i class="fa-solid fa-ban"></i></button>
+                            } @else {
+                              <button class="btn-icon btn-icon--success" title="Reactivar" (click)="reactivarOpcion(o, t.id)"><i class="fa-solid fa-circle-check fa-ok"></i></button>
+                            }
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+                </div>
+              }
+
+            </div>
+          }
+
+        </div>
+      }
+    </div>
+  }
+
+</div>

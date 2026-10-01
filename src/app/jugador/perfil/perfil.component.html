@@ -1,0 +1,215 @@
+<div class="page">
+
+  <!-- Cabecera -->
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>Mi Perfil</h1>
+      <p class="page-sub">Completa tus datos para poder participar en quinielas</p>
+    </div>
+    <a routerLink="/jugador" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Inicio</a>
+  </div>
+
+  <!-- Cargando -->
+  @if (cargando) {
+    <div class="loading-wrap">
+      <div class="spinner"></div>
+      <span>Cargando perfil…</span>
+    </div>
+  }
+
+  <!-- Error de carga -->
+  @if (!cargando && error && !perfil) {
+    <div class="alert alert-error">{{ error }}</div>
+  }
+
+  @if (!cargando && perfil) {
+
+    <!-- Badge de estado -->
+    <div class="estado-banner" [class.completo]="completo" [class.incompleto]="!completo">
+      @if (completo) {
+        <span class="badge badge-completo"><i class="fa-solid fa-check fa-ok"></i> Perfil Completo</span>
+        <span class="badge-txt">Ya puedes crear jugadas en cualquier quiniela.</span>
+      } @else {
+        <span class="badge badge-incompleto"><i class="fa-solid fa-triangle-exclamation"></i> Perfil Incompleto</span>
+        <span class="badge-txt">Completa todos los campos para poder crear jugadas.</span>
+      }
+    </div>
+
+    <!-- Datos de cuenta (solo lectura) -->
+    <div class="card">
+      <h2 class="card-title">Datos de cuenta</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Usuario</span>
+          <span class="info-val">{{ perfil.username }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Correo</span>
+          <span class="info-val">{{ perfil.email }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Cuenta activa</span>
+          <span class="info-val">{{ perfil.activo ? 'Sí' : 'No' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fotografía -->
+    <div class="card">
+      <h2 class="card-title">Fotografía de perfil</h2>
+
+      @if (exitoFoto) {
+        <div class="alert alert-success">{{ exitoFoto }}</div>
+      }
+      @if (errorFoto) {
+        <div class="alert alert-error">{{ errorFoto }}</div>
+      }
+
+      <div class="foto-wrap">
+        <!-- Avatar actual o preview -->
+        <div class="foto-avatar">
+          @if (fotoPreview) {
+            <img [src]="fotoPreview" alt="Vista previa">
+          } @else if (fotoUrl) {
+            <img [src]="fotoUrl" alt="Foto de perfil">
+          } @else {
+            <span class="foto-placeholder"><i class="fa-solid fa-user"></i></span>
+          }
+        </div>
+
+        <div class="foto-acciones">
+          <label class="btn-foto" [class.disabled]="subiendoFoto">
+            <i class="fa-solid fa-camera"></i> Elegir imagen
+            <input type="file" accept="image/jpeg,image/png,image/webp"
+                   (change)="onFotoSeleccionada($event)" [disabled]="subiendoFoto">
+          </label>
+          @if (fotoUrl && !fotoArchivo) {
+            <button type="button" class="btn-eliminar-foto" (click)="eliminarFoto()" [disabled]="eliminandoFoto">
+              @if (eliminandoFoto) { <i class="fa-solid fa-spinner fa-spin"></i> Eliminando… }
+              @else { <i class="fa-solid fa-trash"></i> Eliminar foto }
+            </button>
+          }
+          <span class="foto-hint">JPG, PNG o WebP · máx. 5 MB</span>
+
+          @if (fotoArchivo) {
+            <div class="foto-selected">
+              <span class="foto-name">{{ fotoArchivo.name }}</span>
+              <button type="button" class="btn-quitar" (click)="quitarFotoSeleccionada()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <button type="button" class="btn-primary btn-sm" (click)="subirFoto()" [disabled]="subiendoFoto">
+              @if (subiendoFoto) { Subiendo… } @else { Subir foto }
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario de perfil -->
+    <div class="card">
+      <h2 class="card-title">Datos personales</h2>
+
+      <div #alertaGuardado>
+        @if (exito) {
+          <div class="alert alert-success">{{ exito }}</div>
+        }
+        @if (error) {
+          <div class="alert alert-error">{{ error }}</div>
+        }
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+        <div class="form-grid">
+
+          <!-- Nombre -->
+          <div class="form-group">
+            <label for="nombre">Nombre <span class="req">*</span></label>
+            <input id="nombre" type="text" formControlName="nombre" placeholder="Tu nombre">
+            @if (f['nombre'].invalid && f['nombre'].touched) {
+              <span class="field-error">El nombre es requerido.</span>
+            }
+          </div>
+
+          <!-- Apellido Paterno -->
+          <div class="form-group">
+            <label for="apellidoPaterno">Apellido paterno <span class="req">*</span></label>
+            <input id="apellidoPaterno" type="text" formControlName="apellidoPaterno" placeholder="Primer apellido">
+            @if (f['apellidoPaterno'].invalid && f['apellidoPaterno'].touched) {
+              <span class="field-error">El apellido paterno es requerido.</span>
+            }
+          </div>
+
+          <!-- Apellido Materno -->
+          <div class="form-group">
+            <label for="apellidoMaterno">Apellido materno <span class="req">*</span></label>
+            <input id="apellidoMaterno" type="text" formControlName="apellidoMaterno" placeholder="Segundo apellido">
+            @if (f['apellidoMaterno'].invalid && f['apellidoMaterno'].touched) {
+              <span class="field-error">El apellido materno es requerido.</span>
+            }
+          </div>
+
+          <!-- Ciudad -->
+          <div class="form-group">
+            <label for="ciudad">Ciudad <span class="req">*</span></label>
+            <input id="ciudad" type="text" formControlName="ciudad" placeholder="Ciudad de residencia">
+            @if (f['ciudad'].invalid && f['ciudad'].touched) {
+              <span class="field-error">La ciudad es requerida.</span>
+            }
+          </div>
+
+          <!-- Fecha de nacimiento -->
+          <div class="form-group">
+            <label for="fechaNacimiento">Fecha de nacimiento <span class="req">*</span></label>
+            <input id="fechaNacimiento" type="date" formControlName="fechaNacimiento"
+                   [max]="maxFechaNacimiento">
+            @if (f['fechaNacimiento'].errors?.['required'] && f['fechaNacimiento'].touched) {
+              <span class="field-error">La fecha de nacimiento es requerida.</span>
+            }
+            @if (f['fechaNacimiento'].errors?.['menorDeEdad'] && f['fechaNacimiento'].touched) {
+              <span class="field-error">Debes tener al menos 18 años para participar.</span>
+            }
+          </div>
+
+          <!-- Teléfono -->
+          <div class="form-group">
+            <label for="telefono">Teléfono <span class="req">*</span></label>
+            <input id="telefono" type="tel" formControlName="telefono" placeholder="Ej. 5512345678"
+                   maxlength="10" inputmode="numeric" pattern="[0-9]{10}">
+            @if (f['telefono'].errors?.['required'] && f['telefono'].touched) {
+              <span class="field-error">El teléfono es requerido.</span>
+            }
+            @if (f['telefono'].errors?.['pattern'] && f['telefono'].touched) {
+              <span class="field-error">El teléfono debe tener exactamente 10 dígitos numéricos.</span>
+            }
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="guardando">
+            @if (guardando) { Guardando… } @else { Guardar cambios }
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Cerrar cuenta -->
+    <div class="card card-danger">
+      <h2 class="card-title">Cerrar cuenta</h2>
+      <p class="danger-text">
+        Al desactivar tu cuenta cerraremos tu sesión de inmediato y no podrás volver a iniciar sesión
+        hasta que un administrador la reactive.
+      </p>
+
+      @if (errorCuenta) {
+        <div class="alert alert-error">{{ errorCuenta }}</div>
+      }
+
+      <button type="button" class="btn-desactivar-cuenta" (click)="desactivarCuenta()" [disabled]="desactivandoCuenta">
+        @if (desactivandoCuenta) { <i class="fa-solid fa-spinner fa-spin"></i> Desactivando… }
+        @else { <i class="fa-solid fa-user-slash"></i> Desactivar mi cuenta }
+      </button>
+    </div>
+
+  }
+
+</div>

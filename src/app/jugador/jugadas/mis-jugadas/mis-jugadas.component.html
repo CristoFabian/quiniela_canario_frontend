@@ -1,0 +1,225 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1><i class="fa-solid fa-ticket"></i> Mis Jugadas</h1>
+      <p class="page-sub">Historial y estado de todos tus tickets</p>
+    </div>
+    <div class="header-actions">
+      @if (hayQuinielasAbiertas) {
+        <button class="btn-crear-jugada" (click)="abrirSelector()"><i class="fa-solid fa-ticket"></i> Crear jugada</button>
+      }
+      <button class="btn-refresh" (click)="cargar(); cargarQuinielasAbiertas(); cargarPagosPendientes()"><i class="fa-solid fa-arrows-rotate"></i> Actualizar</button>
+    </div>
+  </div>
+
+  @if (error) { <div class="alert-error">{{ error }}</div> }
+  @if (errorEliminar) { <div class="alert-error">{{ errorEliminar }}</div> }
+
+  @if (mostrarSelector) {
+    <div class="selector-overlay" (click)="cerrarSelector()">
+      <section class="selector-dialog" role="dialog" aria-modal="true" aria-labelledby="selector-title"
+               (click)="$event.stopPropagation()">
+        <div class="selector-header">
+          <div>
+            <h2 id="selector-title">Crear una jugada</h2>
+            <p>Selecciona una quiniela abierta para crear tu ticket.</p>
+          </div>
+          <button class="btn-cerrar" (click)="cerrarSelector()" [disabled]="creandoJugadaId !== null"
+                  aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        @if (errorCrear) { <div class="alert-error small">{{ errorCrear }}</div> }
+
+        <div class="quinielas-selector">
+          @for (q of quinielasAbiertas; track q.id) {
+            <div class="quiniela-option">
+              <div>
+                <strong>{{ q.nombre }}</strong>
+                <span>{{ q.totalPartidos }}/8 partidos · $ {{ q.costo | number:'1.2-2' }} MXN</span>
+                <span>Cierra {{ q.fechaCierre | date:'dd/MM/yy h:mm a' }} ({{ tiempoCierre(q.fechaCierre) }})</span>
+              </div>
+              <button class="btn-seleccionar" (click)="crearJugada(q)" [disabled]="creandoJugadaId !== null">
+                @if (creandoJugadaId === q.id) { <span class="spinner-sm"></span> Creando... }
+                @else { <i class="fa-solid fa-ticket"></i> Crear ticket }
+              </button>
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+  }
+
+  <!-- Stats rápidas -->
+  @if (!cargando && jugadas.length > 0) {
+    <div class="stats-row">
+      <div class="stat-chip" [class.chip-active]="filtroEstado === 'TODAS'" (click)="setFiltro('TODAS')">
+        <span class="stat-num">{{ jugadas.length }}</span>
+        <span class="stat-label">Total Tickets</span>
+      </div>
+      <div class="stat-chip activas" [class.chip-active]="filtroEstado === 'ACTIVA'" (click)="setFiltro('ACTIVA')">
+        <span class="stat-num">{{ jugadasActivas }}</span>
+        <span class="stat-label">Activas <i class="fa-solid fa-circle-check fa-ok"></i></span>
+      </div>
+      <div class="stat-chip pendientes" [class.chip-active]="filtroEstado === 'PENDIENTE_VALIDACION'" (click)="setFiltro('PENDIENTE_VALIDACION')">
+        <span class="stat-num">{{ jugadasPendientes }}</span>
+        <span class="stat-label">Pendientes <i class="fa-regular fa-clock fa-warn"></i></span>
+      </div>
+      <div class="stat-chip creadas" [class.chip-active]="filtroEstado === 'CREADA'" (click)="setFiltro('CREADA')">
+        <span class="stat-num">{{ jugadasCreadas }}</span>
+        <span class="stat-label">Borradores <i class="fa-solid fa-pen-to-square"></i></span>
+      </div>
+    </div>
+
+    <!-- Buscador -->
+    <div class="search-bar">
+      <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+      <input type="text"
+             [(ngModel)]="busqueda"
+             placeholder="Buscar por nombre de quiniela..."
+             class="search-input">
+      @if (hayFiltrosActivos) {
+        <button class="btn-clear" (click)="limpiarFiltros()" title="Limpiar filtros"><i class="fa-solid fa-xmark"></i> Limpiar</button>
+      }
+    </div>
+  }
+
+  @if (cargando) {
+    <div class="loading-state"><div class="spinner"></div><p>Cargando jugadas...</p></div>
+  } @else if (jugadas.length === 0) {
+    <div class="empty-state">
+      <span><i class="fa-solid fa-ticket"></i></span>
+      <h3>Sin jugadas aún</h3>
+      <p>Ve a <a routerLink="/jugador/quinielas">Quinielas</a> y crea tu primer ticket.</p>
+    </div>
+  } @else {
+    <div class="jugadas-list">
+      @if (jugadasFiltradas.length === 0) {
+        <div class="empty-filter">
+          <span><i class="fa-solid fa-magnifying-glass"></i></span>
+          <p>Ninguna jugada coincide con los filtros aplicados.</p>
+          <button class="btn-clear-lg" (click)="limpiarFiltros()">Limpiar filtros</button>
+        </div>
+      }
+      @for (j of jugadasFiltradas; track j.id) {
+        <div class="jugada-card"
+             [class.card-activa]="j.estado === 'ACTIVA'"
+             [class.card-creada]="j.estado === 'CREADA'"
+             [class.card-ganadora]="j.esGanadora">
+
+          <!-- Distintivo ganador (solo quinielas FINALIZADAS ganadoras) -->
+          @if (j.esGanadora) {
+            <div class="banner-ganadora">
+              <span class="ganadora-icono"><i class="fa-solid fa-trophy fa-gold"></i></span>
+              <div class="ganadora-texto">
+                <strong>¡Ganaste esta quiniela!</strong>
+                @if (j.posicionFinal) { <span>Posición #{{ j.posicionFinal }} · {{ j.puntosObtenidos }} pts</span> }
+              </div>
+            </div>
+          }
+
+          <div class="jugada-main">
+            <div class="jugada-left">
+              <div class="jugada-top">
+                <span class="ticket-num">#{{ j.id }}</span>
+                <span class="estado-badge" [ngClass]="estadoClass(j.estado)">{{ j.estado === 'PENDIENTE_VALIDACION' ? 'PENDIENTE' : j.estado }}</span>
+              </div>
+              <h3>{{ j.quinielaNombre }}</h3>
+              <div class="jugada-meta">
+                <span><i class="fa-solid fa-chart-column"></i> {{ j.totalPronosticos }} pronóstico{{ j.totalPronosticos !== 1 ? 's' : '' }}</span>
+                @if (j.puntosObtenidos !== null) {
+                  <span><i class="fa-solid fa-star fa-gold"></i> {{ j.puntosObtenidos }} pts</span>
+                }
+                @if (j.posicionFinal !== null) {
+                  <span><i class="fa-solid fa-medal"></i> Pos. #{{ j.posicionFinal }}</span>
+                }
+                <span><i class="fa-regular fa-calendar"></i> {{ j.createdAt | date:'dd/MM/yy h:mm a' }}</span>
+              </div>
+            </div>
+
+            <div class="jugada-actions">
+              @if (j.estado === 'PENDIENTE_VALIDACION') {
+                <a [href]="enlaceWhatsApp(j)" target="_blank" rel="noopener" class="btn-whatsapp-sm">
+                  <i class="fa-brands fa-whatsapp"></i> Contactar
+                </a>
+              }
+
+              @if (j.estado === 'ACTIVA') {
+                <a [routerLink]="['/jugador/jugadas', j.id]" class="btn-ver-pronosticos">
+                  <i class="fa-solid fa-clipboard-list"></i> Ver pronósticos
+                </a>
+              }
+
+              @if (j.estado === 'FINALIZADA') {
+                <a [routerLink]="['/jugador/jugadas', j.id]" class="btn-ver-resultado">
+                  <i class="fa-solid fa-flag-checkered"></i> Ver resultado
+                </a>
+              }
+              
+              @if (j.estado === 'CREADA') {
+                @if(j.totalPronosticos === 0 && j.totalPronosticos < 8) {
+                  <a [routerLink]="['/jugador/jugadas', j.id]" class="btn-ver">
+                    Pronosticar →
+                  </a>
+                } @else {
+                  <a [routerLink]="['/jugador/jugadas', j.id]" class="btn-ver">
+                    Cambiar Pronósticos <i class="fa-solid fa-pen-to-square"></i>
+                  </a>
+                }
+                <a [routerLink]="['/jugador/pagar']" [queryParams]="{ jugadaIds: j.id }" class="btn-pagar-sm">
+                  <i class="fa-solid fa-credit-card"></i> Pagar
+                </a>
+                @if (confirmandoId === j.id) {
+                  <div class="inline-confirm">
+                    <span>¿Eliminar?</span>
+                    <button class="btn-no"  (click)="cancelarEliminar()">No</button>
+                    <button class="btn-si"  [disabled]="eliminandoId === j.id"
+                            (click)="eliminar(j.id)">
+                      @if (eliminandoId === j.id) { ... } @else { Sí }
+                    </button>
+                  </div>
+                } @else {
+                  <button class="btn-eliminar-sm" (click)="pedirConfirmacion(j.id)"><i class="fa-solid fa-trash"></i></button>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- Aviso estado ACTIVA -->
+          @if (j.estado === 'ACTIVA') {
+            <div class="aviso-activa">
+              <i class="fa-solid fa-circle-check fa-ok"></i> ¡Estás participando! Tu jugada está activa en esta quiniela.
+            </div>
+          }
+
+          <!-- Aviso estado CREADA -->
+          @if (j.estado === 'CREADA') {
+            <div class="aviso-creada">
+              <i class="fa-solid fa-pen-to-square"></i> Borrador — aún puedes editar pronósticos o eliminar esta jugada.
+            </div>
+          }
+
+          <!-- Aviso pago pendiente de validación -->
+          @if (j.estado === 'PENDIENTE_VALIDACION') {
+            <div class="aviso-pago">
+              <i class="fa-regular fa-clock"></i> Pago en revisión. La administración confirmará tu participación.
+            </div>
+          }
+
+          <!-- Aviso estado FINALIZADA -->
+          @if (j.estado === 'FINALIZADA') {
+            @if (j.esGanadora) {
+              <div class="aviso-finalizada aviso-ganadora">
+                <i class="fa-solid fa-trophy fa-gold"></i> ¡Ganaste! Revisa en la seccion de Mis premios el monto ganado de esta jugada.
+              </div>
+            } @else {
+              <div class="aviso-finalizada">
+                <i class="fa-solid fa-flag-checkered"></i> Quiniela finalizada — consulta tus puntos y el resultado definitivo.
+              </div>
+            }
+          }
+
+        </div>
+      }
+    </div>
+  }
+</div>

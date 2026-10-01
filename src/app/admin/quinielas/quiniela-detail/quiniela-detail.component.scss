@@ -1,0 +1,666 @@
+@use 'breakpoints' as bp;
+
+$gold: #f0c040;
+$border: rgba(255,255,255,0.08);
+$text: #e0e0e0;
+$text-muted: #9b9bc0;
+$input-bg: rgba(255,255,255,0.05);
+$card-bg: rgba(255,255,255,0.04);
+
+.page {
+  min-height: 100vh;
+  max-width: 1600px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: $text;
+  padding: 2rem;
+  font-family: 'Segoe UI', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+
+  @include bp.tablet { padding: 1.5rem; }
+  @include bp.mobile  { padding: 1rem 0.85rem; }
+}
+
+.alert-error {
+  background: rgba(220,50,50,0.12);
+  border: 1px solid rgba(220,50,50,0.35);
+  color: #ff7070;
+  padding: 0.8rem 1.2rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  &.small { font-size: 0.82rem; padding: 0.6rem 1rem; margin-bottom: 1rem; }
+}
+
+.alert-success {
+  background: rgba(40,200,100,0.10);
+  border: 1px solid rgba(40,200,100,0.35);
+  color: #60d890;
+  padding: 0.8rem 1.2rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.loading-state {
+  display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 4rem; color: $text-muted;
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: $gold; border-radius: 50%; animation: spin 0.8s linear infinite; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Quiniela Header
+.q-header {
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.q-header-left {
+  flex: 1;
+  min-width: 0;
+  .back-link {
+    display: inline-block;
+    font-size: 0.82rem; color: $text-muted; text-decoration: none;
+    padding: 0.4rem 0; min-height: 44px; box-sizing: border-box;
+    @media (hover: hover) and (pointer: fine) { &:hover { color: $gold; } }
+  }
+  .q-title-row { display: flex; align-items: center; gap: 0.75rem; margin: 0.5rem 0; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: 1.5rem; color: $text; overflow-wrap: break-word; min-width: 0; }
+  .q-desc { margin: 0; color: $text-muted; font-size: 0.88rem; overflow-wrap: break-word; }
+}
+
+.q-badge {
+  display: inline-block; padding: 0.3rem 0.9rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700;
+  &.q-creada    { background: rgba(158,158,158,0.12); color: #9e9e9e; }
+  &.q-abierta   { background: rgba(76,175,130,0.15);  color: #4caf82; }
+  &.q-en-juego  { background: rgba(79,195,247,0.15);  color: #4fc3f7; }
+  &.q-finalizada{ background: rgba(240,192,64,0.15);  color: $gold; }
+}
+
+.q-header-right { display: flex; flex-direction: column; gap: 1rem; align-items: flex-end; }
+
+.q-meta-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem 1.5rem;
+  .q-meta { display: flex; flex-direction: column; align-items: flex-end; }
+  .meta-label { font-size: 0.72rem; color: $text-muted; }
+  .meta-val { font-size: 0.92rem; font-weight: 600; color: $text; &.gold { color: $gold; } }
+}
+
+// A 320-480px, el header se apila; mantener el bloque de metadatos alineado
+// a la derecha se ve descolgado bajo un título alineado a la izquierda.
+@include bp.mobile {
+  .q-header-right { align-items: flex-start; width: 100%; }
+  .q-meta-grid .q-meta { align-items: flex-start; }
+}
+
+.estado-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-start; }
+
+.estado-action-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.estado-warning {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #ffb74d;
+  padding-left: 0.25rem;
+}
+
+.btn-estado {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(240,192,64,0.1);
+  border: 1px solid rgba(240,192,64,0.35);
+  color: $gold;
+  padding: 0.45rem 1rem;
+  min-height: 44px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  strong { font-weight: 700; }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) { background: rgba(240,192,64,0.2); }
+  }
+  &--disabled, &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    border-color: rgba(240,192,64,0.15);
+  }
+  .btn-spinner {
+    width: 12px; height: 12px;
+    border: 2px solid rgba(240,192,64,0.3);
+    border-top-color: $gold;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+}
+
+// ── Section header
+.section-header {
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem;
+  h2 { margin: 0; font-size: 1.1rem; color: $text; flex: 1; }
+}
+
+.info-chip {
+  font-size: 0.8rem; color: $text-muted;
+  background: rgba(255,255,255,0.05); border: 1px solid $border;
+  padding: 0.3rem 0.8rem; border-radius: 20px;
+}
+
+.info-msg {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #81c784;
+  padding: 0.5rem 0;
+}
+
+// ── Form card
+.form-card {
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  h3 { margin: 0 0 1.2rem; font-size: 1rem; color: $gold; }
+}
+
+.edicion-form-card {
+  border-color: rgba(240,192,64,0.25);
+}
+
+.field {
+  display: flex; flex-direction: column; gap: 0.35rem;
+  label { font-size: 0.82rem; font-weight: 600; color: $text-muted; .required { color: #ff7070; } }
+  input, select, textarea {
+    background: $input-bg; border: 1px solid $border; border-radius: 8px;
+    color: $text; padding: 0.6rem 0.9rem; font-size: 0.88rem; outline: none;
+    transition: border-color 0.2s; font-family: inherit;
+    &:focus { border-color: $gold; }
+    &::placeholder { color: $text-muted; }
+    &[type='datetime-local']::-webkit-calendar-picker-indicator { filter: invert(0.6); }
+    &[type='checkbox'] { width: auto; margin-right: 0.4rem; accent-color: $gold; }
+  }
+}
+.field--wide { grid-column: 1 / -1; }
+.checkbox-field label { flex-direction: row; align-items: center; font-size: 0.88rem; color: $text; cursor: pointer; }
+.fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; @media (max-width: 640px) { grid-template-columns: 1fr; } }
+.field-error { font-size: 0.75rem; color: #ff7070; }
+.form-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
+
+// ── Partidos list
+.empty-partidos {
+  display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+  padding: 3rem; color: $text-muted; background: $card-bg;
+  border: 1px solid $border; border-radius: 14px;
+  span { font-size: 2.5rem; } p { text-align: center; max-width: 360px; }
+}
+
+.partidos-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.partido-card {
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { border-color: rgba(240,192,64,0.25); }
+  }
+}
+
+.partido-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.3rem; cursor: pointer; user-select: none; min-height: 44px; box-sizing: border-box;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(255,255,255,0.02); }
+  }
+}
+
+.partido-vs {
+  display: flex; align-items: center; gap: 1rem; flex: 1; min-width: 0;
+  .equipo { font-weight: 600; font-size: 0.95rem; overflow-wrap: break-word; min-width: 0; }
+  .local { color: $text; }
+  .visitante { color: $text; }
+  .vs-sep { padding: 0 0.5rem; flex-shrink: 0; }
+  .vs { font-size: 0.75rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.1em; }
+  .marcador { color: $gold; font-size: 1.1rem; }
+}
+
+.partido-meta {
+  display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;
+  .p-fecha { font-size: 0.78rem; color: $text-muted; white-space: nowrap; }
+  .toggle-icon { font-size: 0.7rem; color: $text-muted; }
+}
+
+// Debajo de ~480px, mantener nombres de equipo + fecha + badge + botón +
+// flecha en una sola fila (sin wrap) fuerza scroll horizontal de la card;
+// se apila en dos filas para que cada bloque tenga su propio ancho completo.
+@include bp.mobile {
+  .partido-header { flex-wrap: wrap; }
+  .partido-vs { flex: 1 1 100%; }
+  .partido-meta { flex: 1 1 100%; justify-content: space-between; }
+}
+
+.p-badge {
+  display: inline-block; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.72rem; font-weight: 600;
+  &.p-pendiente  { background: rgba(158,158,158,0.12); color: #9e9e9e; }
+  &.p-en-juego   { background: rgba(79,195,247,0.15);  color: #4fc3f7; }
+  &.p-finalizado { background: rgba(76,175,130,0.15);  color: #4caf82; }
+  &.p-suspendido { background: rgba(255,100,100,0.12); color: #ff8080; }
+  &.p-pospuesto  { background: rgba(255,183,77,0.12);  color: #ffb74d; }
+}
+
+// ── Panel expandible
+.partido-panel {
+  border-top: 1px solid $border;
+  padding: 1.2rem 1.3rem;
+  animation: slideDown 0.2s ease;
+
+  @include bp.mobile { padding: 1rem 0.9rem; }
+}
+@keyframes slideDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+.panel-section {
+  margin-bottom: 1.5rem;
+  &:last-child { margin-bottom: 0; }
+  h4 { margin: 0 0 0.8rem; font-size: 0.88rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.05em; }
+}
+
+.edit-partido-section {
+  background: rgba(240,192,64,0.04);
+  border: 1px solid rgba(240,192,64,0.18);
+  border-radius: 10px;
+  padding: 1rem;
+  h4 { color: $gold; }
+}
+
+.estado-row {
+  display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+
+  select {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    background: $input-bg;
+    border: 1px solid $border;
+    border-radius: 8px;
+    color: $text;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.88rem;
+    outline: none;
+  }
+
+  // Un <select> nativo puede abrir su lista de opciones con un ancho mayor
+  // al de su propia caja (se ajusta al contenido más largo). Al no limitar
+  // el <select> a 220px y dejar que ocupe todo el ancho disponible de la
+  // fila, se reduce ese desfase y el desplegable ya no sobresale de la
+  // pantalla en viewports angostos.
+  @include bp.tablet {
+    flex-direction: column;
+    align-items: stretch;
+
+    select { flex: 1 1 auto; }
+    .btn-save { justify-content: center; }
+  }
+}
+
+.resultado-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+// ── Buttons
+.btn-edit {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  background: rgba(240,192,64,0.1); border: 1px solid rgba(240,192,64,0.35);
+  color: $gold; padding: 0.5rem 0.9rem; min-height: 44px; border-radius: 8px; cursor: pointer;
+  font-size: 0.8rem; font-weight: 600; transition: all 0.2s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(240,192,64,0.2); }
+  }
+}
+
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: $gold; color: #1a1a2e; border: none;
+  padding: 0.6rem 1.3rem; min-height: 44px; border-radius: 9px; cursor: pointer;
+  font-weight: 700; font-size: 0.88rem; text-decoration: none;
+  transition: all 0.2s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) { background: darken(#f0c040, 8%); transform: translateY(-1px); }
+  }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.btn-secondary {
+  background: transparent; border: 1px solid $border; color: $text-muted;
+  padding: 0.6rem 1.2rem; min-height: 44px; border-radius: 9px; cursor: pointer; font-size: 0.88rem;
+  text-decoration: none; display: inline-flex; align-items: center; transition: all 0.2s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { border-color: $gold; color: $gold; }
+  }
+}
+
+.btn-save {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: rgba(240,192,64,0.12); border: 1px solid rgba(240,192,64,0.3);
+  color: $gold; padding: 0.5rem 1.1rem; min-height: 44px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+  transition: all 0.2s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) { background: rgba(240,192,64,0.2); }
+  }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.spinner-sm {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid rgba(0,0,0,0.15); border-top-color: #1a1a2e;
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+}
+
+// ── Evaluación automática ────────────────────────────────────────────────
+
+.eval-auto-section {
+  background: rgba(76, 175, 130, 0.04);
+  border: 1px solid rgba(76, 175, 130, 0.2);
+  border-radius: 10px;
+  padding: .85rem 1rem;
+  h4 { color: #4caf82; margin: 0 0 .5rem; }
+}
+
+.eval-auto-msg {
+  font-size: .83rem;
+  color: $text-muted;
+  margin: 0;
+  line-height: 1.5;
+  strong { color: $text; }
+}
+
+// ── Panel de Cierre ──────────────────────────────────────────────────
+.cierre-panel {
+  background: $card-bg;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  padding: 1.75rem;
+  margin-top: 2rem;
+}
+
+.cierre-pending { color: $text-muted; font-size: .9rem; }
+
+.cierre-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.cierre-badge {
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  padding: .35rem .85rem;
+  border-radius: 20px;
+  background: rgba(240,192,64,.15);
+  border: 1px solid rgba(240,192,64,.35);
+  color: $gold;
+  white-space: nowrap;
+}
+
+.cierre-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem 1.25rem;
+  font-size: .82rem;
+  color: $text-muted;
+  strong { color: $text; }
+}
+
+.cierre-empate {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  background: rgba(99,102,241,.1);
+  border: 1px solid rgba(99,102,241,.25);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+
+  .empate-icon { font-size: 1.4rem; line-height: 1; }
+  strong { color: $text; font-size: .95rem; }
+  .empate-criterio { margin: .3rem 0 0; font-size: .85rem; color: $text-muted; }
+}
+
+.cierre-section-title {
+  margin: 0 0 .85rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $text;
+}
+
+.ganadores-list {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin-bottom: 1.25rem;
+}
+
+.ganador-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem 1rem;
+  flex-wrap: wrap;
+  padding: .65rem 1rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  font-size: .88rem;
+
+  &.ganador-primero {
+    background: rgba(240,192,64,.08);
+    border-color: rgba(240,192,64,.3);
+  }
+}
+
+.ganador-pos   { font-size: 1.1rem; min-width: 28px; text-align: center; }
+.ganador-nombre { font-weight: 600; color: $text; flex: 1; min-width: 140px; }
+.ganador-jugada { font-size: .78rem; color: $text-muted; }
+.ganador-pts   { font-weight: 700; color: $gold; white-space: nowrap; }
+.ganador-contacto {
+  display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+  font-size: .78rem; color: $text-muted; width: 100%;
+}
+.ganador-criterio {
+  font-size: .75rem;
+  color: $text-muted;
+  font-style: italic;
+  width: 100%;
+}
+
+.cierre-aviso {
+  font-size: .82rem;
+  color: $text-muted;
+  margin: 1rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,.06);
+  strong { color: $text; }
+}
+
+// ── Premio (entrega del premio monetario) ───────────────────────────
+.premio-box {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin-top: .4rem;
+  padding: .75rem .9rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,.02);
+  border: 1px dashed rgba(255,255,255,.1);
+}
+
+.premio-info {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+
+.premio-monto {
+  font-weight: 700;
+  color: $gold;
+  font-size: .9rem;
+}
+
+.premio-badge {
+  display: inline-block;
+  padding: .2rem .6rem;
+  border-radius: 20px;
+  font-size: .72rem;
+  font-weight: 600;
+  &.pr-pendiente  { background: rgba(158,158,158,.12); color: #9e9e9e; }
+  &.pr-pagado     { background: rgba(79,195,247,.15);  color: #4fc3f7; }
+  &.pr-confirmado { background: rgba(76,175,130,.15);  color: #4caf82; }
+}
+
+.btn-link-premio {
+  background: none;
+  border: none;
+  color: $gold;
+  font-size: .78rem;
+  cursor: pointer;
+  padding: .6rem 0;
+  min-height: 44px;
+  text-decoration: underline;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { color: darken(#f0c040, 8%); }
+  }
+}
+
+.premio-upload-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-wrap: wrap;
+  input[type='file'] {
+    font-size: .78rem;
+    color: $text-muted;
+    max-width: 220px;
+  }
+}
+
+// ── Ranking panel ───────────────────────────────────────────────────
+.ranking-panel {
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 1.35rem 1.5rem;
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.ranking-panel-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.ranking-panel-title {
+  font-size: .9rem; font-weight: 700; color: $text;
+}
+.ranking-total {
+  font-size: .78rem; color: $text-muted;
+  background: rgba(255,255,255,.05); border: 1px solid $border;
+  padding: .2rem .65rem; border-radius: 20px;
+}
+.ranking-loading {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: .82rem; color: $text-muted;
+}
+.spinner-sm-admin {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.15);
+  border-top-color: $gold;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.ranking-table { display: flex; flex-direction: column; gap: 0; }
+.ranking-thead {
+  display: grid; grid-template-columns: 3rem 1fr 5rem 6rem;
+  padding: .35rem .75rem;
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .05em;
+  color: $text-muted; border-bottom: 1px solid $border;
+}
+.ranking-row {
+  display: grid; grid-template-columns: 3rem 1fr 5rem 6rem;
+  padding: .55rem .75rem; font-size: .875rem;
+  min-height: 44px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  transition: background .15s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(255,255,255,.03); }
+  }
+  &:last-child { border-bottom: none; }
+}
+.ranking-row-ganador {
+  background: rgba(240,192,64,.06);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(240,192,64,.1); }
+  }
+}
+.rk-pos { font-weight: 700; color: $text-muted; text-align: center; }
+.rk-nombre { color: $text; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rk-pts { font-weight: 700; color: $gold; text-align: right; padding-right: .5rem; }
+.rk-estado { text-align: center; display: flex; align-items: center; justify-content: center; gap: .4rem; }
+
+// Columnas fijas más angostas en pantallas pequeñas: a 320-375px, 3rem+5rem+6rem
+// (14rem = 224px) de columnas fijas dejaban muy poco espacio real al nombre.
+@include bp.tablet {
+  .ranking-thead, .ranking-row { grid-template-columns: 2.4rem 1fr 3.5rem 5rem; }
+}
+@include bp.mobile {
+  .ranking-thead, .ranking-row { grid-template-columns: 2rem 1fr 3rem 4rem; gap: .35rem; }
+}
+.rk-ganador-badge {
+  font-size: .7rem; font-weight: 700; color: $gold;
+  background: rgba(240,192,64,.15); border: 1px solid rgba(240,192,64,.3);
+  padding: .15rem .5rem; border-radius: 20px;
+}
+.ranking-row-clickable { cursor: pointer; }
+.rk-expand-icon {
+  color: $text-muted; font-size: .75rem; transition: transform .15s;
+  &.abierto { transform: rotate(-180deg); }
+}
+.ranking-detalle {
+  padding: .6rem .75rem .85rem 3.75rem;
+  background: rgba(255,255,255,.02);
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  display: flex; flex-direction: column; gap: .4rem;
+
+  @include bp.tablet { padding-left: 2.4rem; }
+  @include bp.mobile { padding-left: .75rem; }
+}
+.ranking-detalle-item {
+  display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+  font-size: .78rem; color: $text-muted;
+}
+.rd-partido    { color: $text; flex: 0 0 auto; min-width: 10rem; }
+.rd-pronostico { flex: 1 1 auto; }
+.rd-resultado  { flex: 1 1 auto; }
+.rd-pts {
+  flex-shrink: 0; font-weight: 700; color: $text-muted;
+  &.acerto { color: $gold; }
+}
+.ranking-detalle-empty { font-size: .78rem; color: $text-muted; font-style: italic; }
+.ranking-empty { font-size: .85rem; color: $text-muted; margin: 0; }

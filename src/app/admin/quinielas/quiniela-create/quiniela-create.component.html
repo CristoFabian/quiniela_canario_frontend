@@ -1,0 +1,90 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1><i class="fa-solid fa-plus"></i> Nueva Quiniela</h1>
+      <p>Completa los datos para crear una nueva quiniela</p>
+    </div>
+    <a routerLink="/admin/quinielas" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> Volver</a>
+  </div>
+
+  @if (error) {
+    <div class="alert-error">{{ error }}</div>
+  }
+
+  <div class="form-card">
+    <form [formGroup]="form" (ngSubmit)="enviar()">
+
+      <!-- Nombre -->
+      <div class="field">
+        <label>Nombre <span class="required">*</span></label>
+        <input type="text" formControlName="nombre" placeholder="Ej. Liga Canaria Jornada 12" />
+        @if (f['nombre'].touched && f['nombre'].errors?.['required']) {
+          <span class="field-error">El nombre es obligatorio</span>
+        }
+        @if (f['nombre'].touched && f['nombre'].errors?.['maxlength']) {
+          <span class="field-error">Máximo 150 caracteres</span>
+        }
+      </div>
+
+      <!-- Descripción -->
+      <div class="field">
+        <label>Descripción</label>
+        <textarea formControlName="descripcion" rows="3" placeholder="Descripción opcional de la quiniela..."></textarea>
+        @if (f['descripcion'].touched && f['descripcion'].errors?.['maxlength']) {
+          <span class="field-error">Máximo 500 caracteres</span>
+        }
+      </div>
+
+      <!-- Costo -->
+      <div class="field">
+        <label>Costo de participación <span class="required">*</span></label>
+        <div class="input-prefix">
+          <span class="prefix">$</span>
+          <input type="number" formControlName="costo" step="0.01" min="0.01" placeholder="0.00" />
+        </div>
+        @if (f['costo'].touched && f['costo'].errors?.['required']) {
+          <span class="field-error">El costo es obligatorio</span>
+        }
+        @if (f['costo'].touched && f['costo'].errors?.['min']) {
+          <span class="field-error">El costo debe ser mayor a 0</span>
+        }
+      </div>
+
+      <!-- Fechas -->
+      <div class="fields-row">
+        <div class="field">
+          <label>Fecha de inicio <span class="required">*</span></label>
+          <input type="datetime-local" formControlName="fechaInicio" />
+          @if (f['fechaInicio'].touched && f['fechaInicio'].errors?.['required']) {
+            <span class="field-error">La fecha de inicio es obligatoria</span>
+          }
+        </div>
+        <div class="field">
+          <label>Fecha de cierre <span class="required">*</span></label>
+          <input type="datetime-local" formControlName="fechaCierre" />
+          @if (f['fechaCierre'].touched && f['fechaCierre'].errors?.['required']) {
+            <span class="field-error">La fecha de cierre es obligatoria</span>
+          }
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div class="info-box">
+        <i class="fa-solid fa-lightbulb"></i> La quiniela se creará en estado <strong>CREADA</strong>. Después podrás agregar hasta
+        <strong>8 partidos</strong> y luego publicarla cambiando el estado a <strong>ABIERTA</strong>.
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <a routerLink="/admin/quinielas" class="btn-secondary">Cancelar</a>
+        <button type="submit" class="btn-primary" [disabled]="cargando">
+          @if (cargando) { <span class="spinner-sm"></span> Creando... }
+          @else { Crear Quiniela }
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>

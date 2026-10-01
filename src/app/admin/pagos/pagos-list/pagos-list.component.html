@@ -1,0 +1,130 @@
+<div class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Validación de Pagos</h1>
+      <p class="page-sub">Revisa y aprueba los pagos de los jugadores</p>
+    </div>
+    <button class="btn-refresh" (click)="cargar()"><i class="fa-solid fa-arrows-rotate"></i> Actualizar</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="filter-tabs">
+    <button class="tab" [class.active]="tab === 'PENDIENTE'" (click)="cambiarTab('PENDIENTE')">
+      <i class="fa-regular fa-clock"></i> Pendientes
+      <span class="tab-badge" *ngIf="tab === 'PENDIENTE' && !cargando && resumenFiltrado.length > 0">
+        {{ resumenFiltrado.length }}
+      </span>
+    </button>
+    <button class="tab" [class.active]="tab === 'TODOS'"     (click)="cambiarTab('TODOS')"><i class="fa-solid fa-clipboard-list"></i> Todos</button>
+    <button class="tab" [class.active]="tab === 'APROBADO'"  (click)="cambiarTab('APROBADO')"><i class="fa-solid fa-circle-check"></i> Aprobados</button>
+    <button class="tab" [class.active]="tab === 'RECHAZADO'" (click)="cambiarTab('RECHAZADO')"><i class="fa-solid fa-circle-xmark"></i> Rechazados</button>
+    <button class="tab" [class.active]="tab === 'VENCIDO'" (click)="cambiarTab('VENCIDO')"><i class="fa-solid fa-rotate-left"></i> Vencidos</button>
+  </div>
+
+  <!-- Buscador -->
+  <div class="search-bar">
+    <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+    <input [(ngModel)]="busqueda"
+           class="search-input"
+           placeholder="Buscar por jugador{{ tab !== 'PENDIENTE' ? ' o ID' : '' }}...">
+    <button *ngIf="busqueda" (click)="busqueda = ''" class="btn-clear"><i class="fa-solid fa-xmark"></i> Limpiar</button>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="alert-error"><i class="fa-solid fa-triangle-exclamation"></i> {{ error }}</div>
+
+  <!-- Loading -->
+  <div *ngIf="cargando" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando pagos...</p>
+  </div>
+
+  <!-- ═══ PENDIENTE: resumen por jugador ═══ -->
+  <ng-container *ngIf="!cargando && tab === 'PENDIENTE'">
+
+    <div *ngIf="resumenFiltrado.length === 0" class="empty-state">
+      <span><i class="fa-solid fa-champagne-glasses"></i></span>
+      <h3>¡Sin pagos pendientes!</h3>
+      <p>No hay pagos que necesiten validación en este momento.</p>
+    </div>
+
+    <div class="jugador-cards" *ngIf="resumenFiltrado.length > 0">
+      <div class="jugador-card" *ngFor="let r of resumenFiltrado">
+
+        <!-- Card header (clickable para expandir) -->
+        <div class="jcard-header" (click)="toggleExpandido(r.usuarioId)">
+          <div class="jcard-avatar">
+            <img *ngIf="fotoUrl(r.foto) as url" [src]="url" alt="{{ r.username }}" class="jcard-avatar-img">
+            <span *ngIf="!fotoUrl(r.foto)"><i class="fa-solid fa-user"></i></span>
+          </div>
+          <div class="jcard-identity">
+            <p class="jcard-nombre">{{ r.nombreCompleto || r.username }}</p>
+            <p class="jcard-email">{{ r.username }} · {{ r.email }}</p>
+            <p class="jcard-telefono" *ngIf="r.telefono"><i class="fa-solid fa-phone"></i> {{ r.telefono }}</p>
+          </div>
+          <div class="jcard-stats">
+            <span class="pill pill-amber"><i class="fa-regular fa-clock"></i> {{ r.totalPagosPendientes }} pago{{ r.totalPagosPendientes > 1 ? 's' : '' }}</span>
+            <span class="pill pill-green"><i class="fa-solid fa-sack-dollar"></i> ${{ r.montoPendienteTotal | number:'1.2-2' }}</span>
+            <span class="pill" [class.pill-ok]="r.todosConComprobante" [class.pill-warn]="!r.todosConComprobante">
+              @if (r.todosConComprobante) { <i class="fa-solid fa-paperclip"></i> Comprobante } @else { <i class="fa-solid fa-triangle-exclamation"></i> Sin comprobante }
+            </span>
+            <span *ngIf="r.algunoConWhatsapp" class="pill pill-wa"><i class="fa-brands fa-whatsapp"></i> WhatsApp</span>
+            <span class="pill pill-time"><i class="fa-regular fa-clock"></i> {{ tiempoTranscurrido(r.pagoMasAntiguo) }}</span>
+          </div>
+          <span class="expand-arrow">{{ expandidos.has(r.usuarioId) ? '▲' : '▼' }}</span>
+        </div>
+
+        <!-- Pagos expandidos -->
+        <div class="jcard-pagos" *ngIf="expandidos.has(r.usuarioId)">
+          <a [routerLink]="['/admin/pagos', p.id]" class="pago-row" *ngFor="let p of r.pagos">
+            <div class="pago-row-left">
+              <span class="pago-num">#{{ p.id }}</span>
+              <span class="pago-detail">{{ p.totalJugadas }} jugada{{ p.totalJugadas > 1 ? 's' : '' }}</span>
+              <span class="pago-monto">${{ p.monto | number:'1.2-2' }} MXN</span>
+              <span *ngIf="p.comprobanteWhatsapp" class="pago-icon" title="Comprobante por WhatsApp"><i class="fa-brands fa-whatsapp"></i></span>
+              <span *ngIf="p.comprobanteUrl && !p.comprobanteWhatsapp" class="pago-icon" title="Comprobante adjunto"><i class="fa-solid fa-paperclip"></i></span>
+              <span *ngIf="!p.comprobanteUrl && !p.comprobanteWhatsapp" class="pago-icon warn" title="Sin comprobante"><i class="fa-solid fa-triangle-exclamation"></i></span>
+            </div>
+            <div class="pago-row-right">
+              <span class="pago-fecha">{{ tiempoTranscurrido(p.fechaCreacion) }}</span>
+              <span class="pago-arrow">→</span>
+            </div>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ═══ TODOS / APROBADO / RECHAZADO: lista plana ═══ -->
+  <ng-container *ngIf="!cargando && tab !== 'PENDIENTE'">
+
+    <div *ngIf="pagosPlanosFiltrados.length === 0" class="empty-state">
+      <span><i class="fa-solid fa-inbox"></i></span>
+      <h3>Sin resultados</h3>
+      <p>No hay pagos{{ busqueda ? ' con esa búsqueda' : '' }} en este estado.</p>
+    </div>
+
+    <div class="pagos-planos" *ngIf="pagosPlanosFiltrados.length > 0">
+      <a [routerLink]="['/admin/pagos', p.id]" class="pago-card-flat" *ngFor="let p of pagosPlanosFiltrados">
+        <div class="pcf-left">
+          <span class="pago-num-flat">#{{ p.id }}</span>
+          <div class="pcf-info">
+            <span class="pcf-user"><i class="fa-solid fa-user"></i> {{ p.nombreCompleto || p.usuarioUsername }}</span>
+            <span class="pcf-detail">{{ p.usuarioUsername }} · {{ p.totalJugadas }} jugada{{ p.totalJugadas > 1 ? 's' : '' }}</span>
+            <span class="pcf-fecha"><i class="fa-regular fa-clock"></i> {{ tiempoTranscurrido(p.fechaCreacion) }}</span>
+          </div>
+        </div>
+        <div class="pcf-right">
+          <span class="pcf-monto">${{ p.monto | number:'1.2-2' }}</span>
+          <span class="estado-badge" [ngClass]="'estado-' + p.estado.toLowerCase()">{{ p.estado }}</span>
+          <span class="pcf-arrow">→</span>
+        </div>
+      </a>
+    </div>
+
+  </ng-container>
+
+</div>

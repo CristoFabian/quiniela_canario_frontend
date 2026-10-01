@@ -1,0 +1,578 @@
+@use 'breakpoints' as bp;
+
+// ── Variables ────────────────────────────────────────────────
+$primary:    #6366f1;
+$gold:       #f0c040;
+$success:    #10b981;
+$warn:       #f59e0b;
+$danger:     #ef4444;
+$text:       #e0e0e0;
+$text-muted: #9b9bc0;
+$surface:    rgba(255,255,255,.04);
+$border:     rgba(255,255,255,.09);
+$card-bg:    rgba(255,255,255,.05);
+
+// ── Página ───────────────────────────────────────────────
+.page {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  color: $text;
+  -webkit-tap-highlight-color: transparent;
+
+  @include bp.tablet { padding: 1.5rem; }
+  @include bp.mobile  { padding: 1rem 0.85rem; }
+}
+
+// ── Botón volver ──────────────────────────────────────────────────────
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: $text-muted;
+  text-decoration: none;
+  font-size: .875rem;
+  padding: .4rem .85rem;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid $border;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  transition: color .15s, border-color .15s, background .15s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { color: $gold; border-color: rgba(240,192,64,.4); background: rgba(240,192,64,.05); }
+  }
+}
+
+// ── Loading / error ───────────────────────────────────────────────────
+.loading-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 4rem 0; color: $text-muted; gap: 1rem;
+}
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid rgba(255,255,255,.1);
+  border-top-color: $gold;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.alert-error {
+  background: rgba(239,68,68,.1);
+  border: 1px solid rgba(239,68,68,.3);
+  border-left: 3px solid $danger;
+  color: #fca5a5;
+  padding: .75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+  font-size: .9rem;
+}
+
+.alert-error-inline {
+  @extend .alert-error;
+  margin-bottom: 1rem;
+}
+
+.alert-success {
+  background: rgba(16,185,129,.1);
+  border: 1px solid rgba(16,185,129,.3);
+  border-left: 3px solid $success;
+  color: #6ee7b7;
+  padding: .75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+  font-size: .9rem;
+}
+
+// ── Header ──────────────────────────────────────────────────────────
+.page-header {
+  margin-bottom: 1.75rem;
+}
+
+.header-left {
+  h1 { margin: 0 0 .5rem; font-size: 1.6rem; color: $text; }
+}
+
+.pago-id-title {
+  color: $gold;
+}
+
+.header-badges {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+
+.header-tiempo {
+  font-size: .85rem;
+  color: $text-muted;
+}
+
+.reintento-badge {
+  font-size: .8rem;
+  color: $text-muted;
+  background: $surface;
+  border: 1px solid $border;
+  padding: .2rem .6rem;
+  min-height: 44px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 20px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { color: $gold; border-color: $gold; }
+  }
+  strong { color: $gold; font-weight: 700; }
+}
+
+// ── Estado badges ─────────────────────────────────────────────────────
+.estado-badge {
+  display: inline-block;
+  padding: .3rem .85rem;
+  border-radius: 20px;
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+}
+.estado-pendiente  { background: rgba(245,158,11,.15); color: #fbbf24; border: 1px solid rgba(245,158,11,.3); }
+.estado-aprobado   { background: rgba(16,185,129,.15); color: #34d399; border: 1px solid rgba(16,185,129,.3); }
+.estado-rechazado  { background: rgba(239,68,68,.15);  color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+.estado-vencido    { background: rgba(245,158,11,.15); color: #fbbf24; border: 1px solid rgba(245,158,11,.3); }
+
+// ── Grid ──────────────────────────────────────────────────────────────
+.detalle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+
+  @include bp.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.col-left, .col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+// ── Card section ──────────────────────────────────────────────────────
+.card-section {
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+}
+
+.section-title {
+  margin: 0 0 1rem;
+  font-size: .95rem;
+  font-weight: 700;
+  color: $gold;
+  padding-bottom: .65rem;
+  border-bottom: 1px solid $border;
+}
+
+// ── Info rows ─────────────────────────────────────────────────────────
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  padding: .5rem 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  gap: .5rem 1rem;
+
+  &:last-child { border-bottom: none; }
+}
+.info-label { font-size: .82rem; color: $text-muted; flex-shrink: 0; }
+.info-val    { font-size: .9rem;  color: $text; text-align: right; min-width: 0; overflow-wrap: break-word; }
+.info-bold   { font-weight: 700; color: #fff; }
+.info-monto  { font-weight: 800; color: #34d399; font-size: 1rem; }
+
+.tag-comprobante {
+  display: inline-block;
+  padding: .15rem .55rem;
+  border-radius: 12px;
+  font-size: .78rem;
+  font-weight: 700;
+}
+.tag-whatsapp { background: rgba(37,211,102,.12); color: #4ade80; border: 1px solid rgba(37,211,102,.3); }
+.tag-archivo  { background: rgba(79,195,247,.12); color: #4fc3f7; border: 1px solid rgba(79,195,247,.3); }
+
+// ── Jugadas ───────────────────────────────────────────────────────────
+.jugada-item {
+  padding: .75rem 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  &:last-child { border-bottom: none; }
+}
+
+.jugada-head {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .3rem;
+}
+
+.jugada-id {
+  font-weight: 700;
+  color: $gold;
+  font-size: .82rem;
+  background: rgba(240,192,64,.08);
+  padding: .1rem .4rem;
+  border-radius: 5px;
+  border: 1px solid rgba(240,192,64,.2);
+}
+
+.jugada-quiniela {
+  margin: 0 0 .3rem;
+  font-size: .875rem;
+  font-weight: 600;
+  color: $text;
+}
+
+.jugada-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+  font-size: .78rem;
+  color: $text-muted;
+}
+
+// ── Jugada estado badges ──────────────────────────────────────────────
+.jugada-estado-badge {
+  display: inline-block;
+  padding: .15rem .55rem;
+  border-radius: 12px;
+  font-size: .72rem;
+  font-weight: 700;
+}
+.jestado-creada                { background: rgba(99,102,241,.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); }
+.jestado-pendiente_validacion  { background: rgba(245,158,11,.15); color: #fbbf24; border: 1px solid rgba(245,158,11,.3); }
+.jestado-activa                { background: rgba(16,185,129,.15); color: #34d399; border: 1px solid rgba(16,185,129,.3); }
+.jestado-rechazada             { background: rgba(239,68,68,.15);  color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+.jestado-expirada              { background: rgba(100,116,139,.15); color: #94a3b8; border: 1px solid rgba(100,116,139,.3); }
+.jestado-finalizada            { background: rgba(168,85,247,.15); color: #c084fc; border: 1px solid rgba(168,85,247,.3); }
+
+// ── Validación resultado ──────────────────────────────────────────────
+.observacion-result {
+  margin-top: .75rem;
+  background: rgba(245,158,11,.08);
+  border: 1px solid rgba(245,158,11,.2);
+  border-radius: 8px;
+  padding: .75rem 1rem;
+}
+.obs-label { margin: 0 0 .35rem; font-size: .78rem; color: $text-muted; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.obs-text  { margin: 0; font-size: .875rem; color: $text; line-height: 1.5; }
+
+// ── Comprobante ────────────────────────────────────────────────────────
+.wa-indicator {
+  background: rgba(37,211,102,.1);
+  border: 1px solid rgba(37,211,102,.3);
+  color: #4ade80;
+  padding: .75rem 1rem;
+  border-radius: 10px;
+  font-size: .875rem;
+  font-weight: 600;
+}
+
+.sin-comprobante {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  color: $text-muted;
+  gap: .5rem;
+  .sin-icon { font-size: 1.75rem; }
+  p { margin: 0; font-size: .875rem; }
+}
+
+.img-loading {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: 1.5rem;
+  color: $text-muted;
+  font-size: .875rem;
+}
+
+.spinner-sm {
+  display: inline-block;
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,.15);
+  border-top-color: $gold;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+.comprobante-img {
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: rgba(0,0,0,.3);
+  display: block;
+  cursor: zoom-in;
+  border: 1px solid $border;
+}
+
+.pdf-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  background: rgba(99,102,241,.08);
+  border: 1px dashed rgba(99,102,241,.3);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .15s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(99,102,241,.14); }
+  }
+  .pdf-icon { font-size: 2.5rem; margin-bottom: .5rem; }
+  p { margin: 0; color: $text-muted; font-size: .9rem; }
+}
+
+.btn-ver-completo {
+  display: block;
+  width: 100%;
+  margin-top: .75rem;
+  padding: .5rem;
+  min-height: 44px;
+  box-sizing: border-box;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 8px;
+  color: $text-muted;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { color: $text; border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.08); }
+  }
+}
+
+// ── Acciones ──────────────────────────────────────────────────────────
+.acciones-card {
+  border-color: rgba(99,102,241,.25);
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  font-size: .82rem;
+  font-weight: 600;
+  color: $text;
+  margin-bottom: .4rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.form-hint {
+  font-size: .78rem;
+  font-weight: 400;
+  color: $text-muted;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.textarea-obs {
+  width: 100%;
+  background: rgba(0,0,0,.2);
+  border: 1px solid $border;
+  border-radius: 10px;
+  color: $text;
+  font-size: .875rem;
+  padding: .65rem .875rem;
+  resize: vertical;
+  transition: border-color .15s;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: rgba(99,102,241,.5);
+  }
+  &::placeholder { color: $text-muted; }
+}
+
+.btn-acciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+  margin-bottom: .875rem;
+}
+
+.btn-aprobar,
+.btn-rechazar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  padding: .75rem;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 10px;
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s, box-shadow .15s;
+
+  &:disabled { opacity: .55; cursor: not-allowed; }
+  @media (hover: hover) and (pointer: fine) {
+    &:not(:disabled):hover { transform: translateY(-1px); }
+  }
+}
+
+.btn-aprobar {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(16,185,129,.35);
+  @media (hover: hover) and (pointer: fine) {
+    &:not(:disabled):hover { box-shadow: 0 5px 16px rgba(16,185,129,.45); }
+  }
+}
+
+.btn-rechazar {
+  background: linear-gradient(135deg, #b91c1c, #ef4444);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(239,68,68,.35);
+  @media (hover: hover) and (pointer: fine) {
+    &:not(:disabled):hover { box-shadow: 0 5px 16px rgba(239,68,68,.45); }
+  }
+}
+
+.spinner-btn {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+.acciones-hint {
+  font-size: .78rem;
+  color: $text-muted;
+  line-height: 1.6;
+  margin: 0;
+  strong { color: $text; }
+}
+
+// -- Subir comprobante (admin) ----------------------------------------------
+
+.upload-admin-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed $border;
+}
+
+.upload-admin-title {
+  font-size: .9rem;
+  font-weight: 600;
+  color: $text;
+  margin: 0 0 .75rem;
+}
+
+.upload-admin-row {
+  margin-bottom: .75rem;
+}
+
+.upload-admin-label {
+  display: block;
+  font-size: .8rem;
+  font-weight: 600;
+  color: $text-muted;
+  margin-bottom: .35rem;
+}
+
+.opcional-hint {
+  font-weight: 400;
+  color: $text-muted;
+}
+
+.dropzone-admin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .25rem;
+  padding: .7rem 1rem;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 2px dashed $border;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: .82rem;
+  color: $text-muted;
+  transition: border-color .2s, background .2s;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { border-color: $primary; background: rgba($primary, .05); }
+  }
+
+  &.has-file {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, .08);
+  }
+}
+
+.file-name-admin  { font-size: .82rem; font-weight: 600; color: $text; }
+.file-change-admin { font-size: .74rem; color: $text-muted; }
+.hint-admin        { font-size: .74rem; color: $text-muted; }
+
+.checkbox-wa-label {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .85rem;
+  color: $text;
+  cursor: pointer;
+}
+
+.checkbox-wa {
+  width: 16px;
+  height: 16px;
+  accent-color: $primary;
+  cursor: pointer;
+}
+
+.btn-subir-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .5rem 1.1rem;
+  min-height: 44px;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .2s;
+  &:disabled { opacity: .6; cursor: not-allowed; }
+  @media (hover: hover) and (pointer: fine) {
+    &:not(:disabled):hover { opacity: .9; }
+  }
+}
+
+.alert-success-inline {
+  padding: .5rem .75rem;
+  background: rgba(16,185,129,.12);
+  color: #6ee7b7;
+  border: 1px solid rgba(16,185,129,.3);
+  border-radius: 6px;
+  font-size: .82rem;
+  margin-bottom: .5rem;
+}

@@ -1,0 +1,90 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1><i class="fa-solid fa-bullseye"></i> Quinielas Disponibles</h1>
+      <p class="page-sub">Participa en las quinielas activas y realiza tus pronósticos</p>
+    </div>
+    <button class="btn-refresh" (click)="cargar()"><i class="fa-solid fa-arrows-rotate"></i> Actualizar</button>
+  </div>
+
+  @if (perfilIncompleto) {
+    <div class="alert-perfil">
+      <span><i class="fa-solid fa-triangle-exclamation"></i></span>
+      <span>
+        Tu perfil está incompleto. Debes completarlo antes de crear un ticket.
+        <a routerLink="/jugador/perfil">Completar perfil →</a>
+      </span>
+    </div>
+  }
+
+  @if (error) { <div class="alert-error">{{ error }}</div> }
+
+  @if (cargando) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando quinielas...</p>
+    </div>
+  } @else if (quinielas.length === 0) {
+    <div class="empty-state">
+      <span><i class="fa-solid fa-flag-checkered"></i></span>
+      <h3>No hay quinielas disponibles</h3>
+      <p>Las quinielas aparecerán aquí cuando estén abiertas para participar.</p>
+    </div>
+  } @else {
+    <div class="quinielas-grid">
+      @for (q of quinielas; track q.id) {
+        <div class="quiniela-card">
+          <div class="card-top">
+            <div class="q-estado">
+              @if (esCerrada(q.fechaCierre)) {
+                <span class="badge-cerrada">CERRADA</span>
+              } @else {
+                <span class="badge-abierta">ABIERTA</span>
+              }
+              <span class="q-costo">$ {{ q.costo | number:'1.2-2' }} MXN</span>
+            </div>
+            <h2 class="q-nombre">{{ q.nombre }}</h2>
+            @if (q.descripcion) {
+              <p class="q-desc">{{ q.descripcion }}</p>
+            }
+          </div>
+
+          <div class="card-meta">
+            <div class="meta-item">
+              <span class="meta-label"><i class="fa-solid fa-futbol"></i> Partidos</span>
+              <span class="meta-val">{{ q.totalPartidos }}/8</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label"><i class="fa-solid fa-trophy fa-gold"></i> Bolsa acumulada</span>
+              <span class="meta-val meta-bolsa">$ {{ (q.bolsaAcumulada ?? 0) | number:'1.2-2' }} MXN</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label"><i class="fa-regular fa-calendar"></i> Cierra en</span>
+              <span class="meta-val" [class.urgente]="urgente(q.fechaCierre)" [class.cerrada]="esCerrada(q.fechaCierre)">
+                {{ tiempoCierre(q.fechaCierre) }}
+              </span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label"><i class="fa-regular fa-calendar"></i> Inicio</span>
+              <span class="meta-val">{{ q.fechaInicio | date:'dd/MM/yy' }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label"><i class="fa-solid fa-lock"></i> Cierre</span>
+              <span class="meta-val">{{ q.fechaCierre | date:'dd/MM/yy h:mm a' }}</span>
+            </div>
+          </div>
+
+          @if (errorCrear[q.id]) {
+            <div class="alert-error small">{{ errorCrear[q.id] }}</div>
+          }
+
+          <button class="btn-participar" (click)="participar(q)" [disabled]="creando[q.id] || esCerrada(q.fechaCierre)">
+            @if (creando[q.id]) { <span class="spinner-sm"></span> Creando ticket... }
+            @else if (esCerrada(q.fechaCierre)) { <i class="fa-solid fa-lock"></i> Quiniela cerrada }
+            @else { <i class="fa-solid fa-ticket"></i> Crear Ticket }
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>

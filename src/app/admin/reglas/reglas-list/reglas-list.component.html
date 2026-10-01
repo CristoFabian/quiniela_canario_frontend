@@ -1,0 +1,112 @@
+<div class="page">
+
+  <!-- ── Cabecera ─────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <h1><i class="fa-solid fa-scroll"></i> Reglas del Juego</h1>
+      <p class="page-sub">Gestiona las reglas mostradas a los jugadores, por categoría</p>
+    </div>
+    <button class="btn-primary" (click)="abrirCrear()">+ Nueva Regla</button>
+  </div>
+
+  @if (error) { <div class="alert-error">{{ error }}</div> }
+
+  <!-- ── Formulario ────────────────────────────────────────────── -->
+  @if (mostrarForm) {
+    <div class="form-card">
+      <h3>{{ editando ? 'Editar' : 'Nueva' }} Regla</h3>
+      @if (errorForm) { <div class="alert-error small">{{ errorForm }}</div> }
+      <form [formGroup]="form" (ngSubmit)="guardar()">
+        <div class="fields-row">
+          <div class="field full">
+            <label>Título <span class="req">*</span></label>
+            <input type="text" formControlName="titulo" placeholder="Ej. Cómo se calculan los puntos" />
+            @if (f['titulo'].touched && f['titulo'].errors?.['required']) {
+              <span class="field-error">Obligatorio</span>
+            }
+            @if (f['titulo'].touched && f['titulo'].errors?.['maxlength']) {
+              <span class="field-error">Máx. 150 caracteres</span>
+            }
+          </div>
+        </div>
+        <div class="field full">
+          <label>Descripción <span class="req">*</span></label>
+          <textarea formControlName="descripcion" rows="4" placeholder="Texto de la regla"></textarea>
+          @if (f['descripcion'].touched && f['descripcion'].errors?.['required']) {
+            <span class="field-error">Obligatorio</span>
+          }
+        </div>
+        <div class="fields-row">
+          <div class="field">
+            <label>Categoría <span class="req">*</span></label>
+            <select formControlName="categoria">
+              @for (c of categorias; track c) {
+                <option [value]="c">{{ categoriaLabels[c] }}</option>
+              }
+            </select>
+          </div>
+          <div class="field field--sm">
+            <label>Orden</label>
+            <input type="number" formControlName="orden" min="0" />
+          </div>
+          <div class="field checkbox-field">
+            <label><input type="checkbox" formControlName="activo" /> Activo</label>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="cancelar()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="guardando">
+            @if (guardando) { <span class="spinner-sm"></span> Guardando... }
+            @else { Guardar Regla }
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- ── Lista de reglas por categoría ────────────────────────── -->
+  @if (cargando) {
+    <div class="loading-state"><div class="spinner"></div><p>Cargando reglas...</p></div>
+  } @else if (reglas.length === 0) {
+    <div class="empty-state">
+      <span><i class="fa-solid fa-scroll"></i></span>
+      <p>No hay reglas registradas. Crea la primera.</p>
+    </div>
+  } @else {
+    @for (cat of categorias; track cat) {
+      @if (reglasPorCategoria(cat).length > 0) {
+        <div class="categoria-group">
+          <h2 class="categoria-title">{{ categoriaLabels[cat] }}</h2>
+          <div class="reglas-list">
+            @for (r of reglasPorCategoria(cat); track r.id) {
+              <div class="regla-card" [class.inactive]="!r.activo">
+                <div class="regla-main">
+                  <div class="regla-info">
+                    <span class="regla-orden">#{{ r.orden }}</span>
+                    <span class="regla-titulo">{{ r.titulo }}</span>
+                  </div>
+                  <p class="regla-desc">{{ r.descripcion }}</p>
+                </div>
+                <div class="regla-side">
+                  <span class="badge-status" [class.active]="r.activo" [class.inactive]="!r.activo">
+                    {{ r.activo ? 'Activa' : 'Inactiva' }}
+                  </span>
+                  <div class="regla-actions">
+                    <button class="btn-icon" title="Editar" (click)="abrirEditar(r)"><i class="fa-solid fa-pen"></i></button>
+                    @if (r.activo) {
+                      <button class="btn-icon btn-icon--danger" title="Desactivar" (click)="desactivar(r)"><i class="fa-solid fa-ban"></i></button>
+                    } @else {
+                      <button class="btn-icon btn-icon--success" title="Reactivar" (click)="reactivar(r)"><i class="fa-solid fa-circle-check fa-ok"></i></button>
+                    }
+                    <button class="btn-icon btn-icon--danger" title="Eliminar definitivamente" (click)="eliminarDefinitivo(r)"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  }
+
+</div>

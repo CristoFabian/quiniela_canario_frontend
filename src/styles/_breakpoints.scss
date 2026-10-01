@@ -1,0 +1,22 @@
+// Responsive breakpoint model — Quiniela del Canario
+// Mobile-first scale covering phones (Android/iOS), tablets and desktop.
+// Usage in any component: @use 'breakpoints' as bp;  then  @include bp.tablet { ... }
+$mobile-s: 360px;  // small phones (e.g. iPhone SE, small Android)
+$mobile:   480px;  // standard phones, portrait
+$tablet:   768px;  // phones landscape / small tablets portrait (iPad mini, Android tablets)
+$tablet-l: 1024px; // tablets landscape (iPad), small laptops
+$desktop:  1280px; // desktop / large screens
+
+// Max-width mixins (matches this codebase's existing max-width media query convention)
+@mixin mobile-s  { @media (max-width: $mobile-s)  { @content; } }
+@mixin mobile    { @media (max-width: $mobile)    { @content; } }
+@mixin tablet    { @media (max-width: $tablet)    { @content; } }
+@mixin tablet-l  { @media (max-width: $tablet-l)  { @content; } }
+@mixin desktop-l { @media (min-width: $desktop)   { @content; } }
+
+// Min-width mixins for "and up" ranges
+@mixin tablet-up  { @media (min-width: $tablet + 1px)   { @content; } }
+@mixin desktop-up { @media (min-width: $tablet-l + 1px) { @content; } }
+
+// Touch/coarse-pointer devices (phones & tablets, both Android and iOS)
+@mixin touch { @media (hover: none) and (pointer: coarse) { @content; } }

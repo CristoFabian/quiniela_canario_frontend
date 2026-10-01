@@ -1,0 +1,21 @@
+<div class="layout-wrapper">
+
+  <header class="header">
+    <div class="header__brand">
+      <img src="assets/img/logo.png" alt="Logo Quiniela del Canario" class="header__logo-img">
+      <span class="header__logo">La quiniela del canario</span>
+    </div>
+    <nav class="header__nav">
+      <a routerLink="/login" routerLinkActive="active" class="btn btn--outline">Entrar</a>
+      <a routerLink="/register" routerLinkActive="active" class="btn btn--primary">Registrarse</a>
+    </nav>
+  </header>
+
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="footer">
+  </footer>
+
+</div>

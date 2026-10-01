@@ -1,0 +1,150 @@
+@use 'breakpoints' as bp;
+
+$accent:    #4fc3f7;
+$gold:      #f0c040;
+$text:      #e0e0e0;
+$text-muted:#8a8aa8;
+$border:    rgba(255,255,255,0.08);
+$card-bg:   rgba(255,255,255,0.04);
+
+.page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: $text;
+  padding: 2rem;
+  font-family: 'Segoe UI', sans-serif;
+
+  @include bp.tablet { padding: 1.5rem; }
+  @include bp.mobile  { padding: 1rem 0.85rem; }
+}
+
+.page-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 2rem;
+  h1 { margin: 0; font-size: 1.6rem; }
+  .page-sub { margin: 0.25rem 0 0; color: $text-muted; font-size: 0.88rem; }
+}
+
+.btn-refresh {
+  background: rgba(255,255,255,0.07); border: 1px solid $border;
+  color: $text-muted; padding: 0.45rem 1rem; border-radius: 8px;
+  cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
+  &:hover { color: $text; background: rgba(255,255,255,0.12); }
+}
+
+.alert-error {
+  background: rgba(220,50,50,0.12); border: 1px solid rgba(220,50,50,0.35);
+  color: #ff7070; padding: 0.8rem 1.2rem; border-radius: 10px;
+  margin-bottom: 1.5rem;
+  &.small { font-size: 0.82rem; padding: 0.5rem 0.9rem; margin: 0.5rem 0 0; }
+}
+
+.alert-perfil {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  background: rgba(240,192,64,.08);
+  border: 1px solid rgba(240,192,64,.3);
+  border-radius: 10px;
+  padding: .8rem 1.2rem;
+  margin-bottom: 1.5rem;
+  color: $text;
+  font-size: .9rem;
+
+  a {
+    color: $gold;
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: .3rem;
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.loading-state {
+  display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 4rem; color: $text-muted;
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: $accent; border-radius: 50%; animation: spin 0.8s linear infinite; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state {
+  text-align: center; padding: 4rem 2rem; color: $text-muted;
+  span { font-size: 3.5rem; display: block; margin-bottom: 1rem; }
+  h3 { color: $text; margin: 0 0 0.5rem; }
+  p { margin: 0; font-size: 0.9rem; }
+}
+
+.quinielas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.quiniela-card {
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 18px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: border-color 0.2s, transform 0.2s;
+  &:hover { border-color: rgba(79,195,247,0.35); transform: translateY(-2px); }
+}
+
+.card-top {
+  .q-estado { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+}
+
+.badge-abierta {
+  background: rgba(76,175,130,0.15); color: #4caf82;
+  border: 1px solid rgba(76,175,130,0.25);
+  padding: 0.2rem 0.75rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700;
+}
+
+.badge-cerrada {
+  background: rgba(239,68,68,0.12); color: #ef4444;
+  border: 1px solid rgba(239,68,68,0.25);
+  padding: 0.2rem 0.75rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700;
+}
+
+.q-costo {
+  color: $gold; font-weight: 700; font-size: 1rem;
+}
+
+.q-nombre {
+  margin: 0 0 0.4rem; font-size: 1.1rem; color: $text; font-weight: 700;
+}
+
+.q-desc { margin: 0; font-size: 0.82rem; color: $text-muted; }
+
+.card-meta {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
+}
+
+.meta-item {
+  display: flex; flex-direction: column; gap: 0.15rem;
+}
+
+.meta-label { font-size: 0.72rem; color: $text-muted; }
+.meta-val   { font-size: 0.88rem; font-weight: 600; color: $text;
+  &.urgente { color: #ffb74d; }
+  &.cerrada { color: #ef4444; }
+  &.meta-bolsa { color: $gold; }
+}
+
+.btn-participar {
+  width: 100%;
+  background: linear-gradient(135deg, $accent, #0288d1);
+  border: none; color: #0a0a14; font-weight: 700;
+  padding: 0.75rem; border-radius: 10px; cursor: pointer;
+  font-size: 0.92rem; transition: opacity 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+  &:hover:not(:disabled) { opacity: 0.88; }
+}
+
+.spinner-sm {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid rgba(10,10,20,0.3); border-top-color: #0a0a14;
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+}

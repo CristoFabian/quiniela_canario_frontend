@@ -1,0 +1,649 @@
+<div class="page">
+
+  @if (error) { <div class="alert-error">{{ error }}</div> }
+
+  @if (cargando) {
+    <div class="loading-state"><div class="spinner"></div><p>Cargando jugada...</p></div>
+  }
+
+  @if (!cargando && jugada) {
+    <!-- ── Cabecera jugada ──────────────────────────────────────── -->
+    <div class="jugada-header">
+      <div class="header-left">
+        <a routerLink="/jugador/mis-jugadas" class="back-link"><i class="fa-solid fa-arrow-left"></i> Mis Jugadas</a>
+        <div class="titulo-row">
+          <h1>Jugada (Ticket) #{{ jugada.id }}</h1>
+          <span class="estado-badge" [ngClass]="estadoClass(jugada.estado)">{{ jugada.estado }}</span>
+          @if (jugada.esGanadora) {
+            <span class="detalle-ganadora-badge"><i class="fa-solid fa-trophy fa-gold"></i> Ganadora</span>
+            
+          }
+        </div>
+        <p class="quiniela-nombre">{{ jugada.quinielaNombre }}</p>
+      </div>
+
+      <div class="header-right">
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">Pronósticos</span>
+            <span class="meta-val">{{ progreso.completados }} / {{ progreso.total || 8 }}</span>
+          </div>
+          @if (jugada.puntosObtenidos !== null) {
+            <div class="meta-item">
+              <span class="meta-label">Puntos</span>
+              <span class="meta-val gold"><i class="fa-solid fa-star fa-gold"></i> {{ jugada.puntosObtenidos }}</span>
+            </div>
+          }
+          @if (jugada.posicionFinal !== null) {
+            <div class="meta-item">
+              <span class="meta-label">Posición final</span>
+              <span class="meta-val" [class.gold]="jugada.esGanadora">#{{ jugada.posicionFinal }}</span>
+            </div>
+          }
+          @if (quiniela) {
+            <div class="meta-item">
+              <span class="meta-label">Costo</span>
+              <span class="meta-val gold">$ {{ quiniela.costo | number:'1.2-2' }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Cierre de Quiniela</span>
+              <span class="meta-val">{{ quiniela.fechaCierre | date:'dd/MM/yy h:mm a' }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Botón WhatsApp pago (solo si está pendiente de validación) -->
+        @if (jugada.estado === 'PENDIENTE_VALIDACION') {
+          <div class="pago-section">
+            <p class="pago-aviso"><i class="fa-regular fa-clock"></i> Pago enviado, esperando confirmación de la administración.</p>
+            <a [href]="enlaceWhatsApp()" target="_blank" rel="noopener" class="btn-whatsapp">
+              <i class="fa-brands fa-whatsapp"></i> Contactar Administración<noscript></noscript>
+            </a>
+          </div>
+        }
+
+        <!-- Botón eliminar jugada (solo si estado CREADA) -->
+        @if (esCreada) {
+          <div class="eliminar-section">
+            @if (!confirmandoEliminar) {
+              <button class="btn-eliminar" (click)="pedirConfirmacionEliminar()">
+                <i class="fa-solid fa-trash"></i> Eliminar
+              </button>
+            } @else {
+              <div class="confirmar-eliminar">
+                <span>¿Eliminar jugada y todos sus pronósticos?</span>
+                <div class="confirmar-btns">
+                  <button class="btn-cancel-sm" (click)="cancelarEliminar()">No</button>
+                  <button class="btn-delete-sm" [disabled]="eliminandoJugada" (click)="confirmarEliminar()">
+                    @if (eliminandoJugada) { Eliminando... } @else { Sí, eliminar }
+                  </button>
+                </div>
+              </div>
+            }
+            @if (errorEliminar) { <div class="alert-error small">{{ errorEliminar }}</div> }
+          </div>
+        }
+      </div>
+    </div>
+    <!-- ── Banner EN JUEGO ────────────────────────────────── -->
+    @if (esEnJuego) {
+      <div class="banner-en-juego">
+        <div class="banner-en-juego-left">
+          <span class="pulse-dot"></span>
+          <div>
+            <strong>{{ bannerEnJuegoTitulo }}</strong>
+            <p>{{ bannerEnJuegoSubtitulo }}</p>
+          </div>
+        </div>
+        <div class="banner-en-juego-right">
+          <div class="evaluacion-chip">
+            <span class="eval-num">{{ progresoEvaluacion.evaluados }}</span>
+            <span class="eval-sep">/</span>
+            <span class="eval-total">{{ progresoEvaluacion.total }}</span>
+            <span class="eval-label">evaluados</span>
+          </div>
+          <div class="puntos-chip-ej">
+            <i class="fa-solid fa-star fa-gold"></i> <strong>{{ puntosEvaluados }}</strong> <span>pts acumulados</span>
+          </div>
+          <button class="btn-ranking-ej" (click)="toggleRankingGeneral()">
+            <i class="fa-solid fa-trophy fa-gold"></i> {{ mostrarRankingGeneral ? 'Ocultar Ranking' : 'Ver Ranking General' }}
+          </button>
+          <button class="btn-refresh-ej" (click)="cargar(jugada!.id)">
+            <i class="fa-solid fa-arrows-rotate"></i> Actualizar
+          </button>
+        </div>
+      </div>
+    }
+    <!-- ── Pantalla FINALIZADA ─────────────────────────────────────── -->
+    @if (esFinalizada) {
+
+      <!-- ① HERO: resultado en < 10 seg ──────────────────────────── -->
+      <div class="rh-hero">
+
+        <div class="rh-top">
+          <span class="rh-badge"><i class="fa-solid fa-flag-checkered"></i> Resultados Definitivos</span>
+          @if (ranking?.criteriosAplicados) {
+            
+            <span class="rh-criterio-chip">Criterio aplicado: {{ ranking!.criteriosAplicados }}</span>
+          }
+        </div>
+
+        <!-- Tarjetas de stats del jugador -->
+        <div class="rh-stats">
+          <div class="rh-stat rh-stat-pos"
+               [class.rh-stat-ganador]="esSoyGanador">
+            @if (esSoyGanador) { <span class="rh-self-ganador-badge">¡Ganaste!</span> }
+            <span class="rh-stat-num">
+              @if (miPosicion > 0) { #{{ miPosicion }} } @else { — }
+            </span>
+            <span class="rh-stat-lbl">tu posición</span>
+          </div>
+          <div class="rh-stat">
+            <span class="rh-stat-num">{{ puntosFinales }}</span>
+            <span class="rh-stat-lbl">puntos finales</span>
+          </div>
+          <div class="rh-stat">
+            <span class="rh-stat-num">{{ pronosticosCorrectos }}/{{ totalPronosticos }}</span>
+            <span class="rh-stat-lbl">pronósticos correctos</span>
+          </div>
+          @if (ranking) {
+            <div class="rh-stat">
+              <span class="rh-stat-num">{{ ranking.totalParticipantes }}</span>
+              <span class="rh-stat-lbl">participantes</span>
+            </div>
+          }
+        </div>
+
+        <!-- Bloque ganadores -->
+        @if (ganadoresList.length > 0) {
+          <div class="rh-ganadores">
+            <span class="rh-ganadores-titulo">
+              {{ ganadoresList.length === 1 ? 'Ganador' : 'Ganadores' }}
+            </span>
+            <div class="rh-ganadores-list">
+              @for (g of ganadoresList; track g.jugadaId) {
+                <div class="rh-ganador-chip" [class.rh-ganador-chip-yo]="esFilaPropia(g)">
+                  <span class="rh-ganador-nombre">{{ g.nombreJugador }}</span>
+                  <span class="rh-ganador-pts">{{ g.puntosObtenidos }} pts</span>
+                  @if (esFilaPropia(g)) { <span class="rh-tu-chip">Tú</span> }
+                </div>
+              }
+            </div>
+          </div>
+        } @else if (cargandoRanking) {
+          <div class="rh-loading">
+            <div class="spinner-sm"></div><span>Cargando resultado…</span>
+          </div>
+        }
+
+        @if (premioActual?.tieneComprobanteOtros) {
+          <div class="rh-premio-comprobante">
+            <button type="button" class="btn-premio-comprobante" (click)="verComprobantePremioOtros()">
+              <i class="fa-solid fa-receipt"></i> Ver comprobante del premio
+            </button>
+            @if (errorComprobantePremioOtros) {
+              <div class="alert-error small">{{ errorComprobantePremioOtros }}</div>
+            }
+          </div>
+        }
+
+        <!-- Sello definitivo -->
+        <div class="rh-definitivo">
+          <span class="rh-definitivo-icon"><i class="fa-solid fa-circle-check fa-ok"></i></span>
+          <span>Resultado definitivo e inamovible. Consulta el desglose por partido a continuación.</span>
+        </div>
+
+      </div><!-- /rh-hero -->
+
+    }
+
+    <!-- ── RANKING GENERAL: búsqueda, paginación y desglose de pronósticos ── -->
+    <!-- Visible al finalizar la quiniela, o bajo demanda mientras está EN_JUEGO -->
+    @if ((esFinalizada || (esEnJuego && mostrarRankingGeneral)) && ranking && ranking.ranking.length > 0) {
+      <div class="rk-section">
+
+        <!-- Cabecera: título + buscador -->
+        <div class="rk-header">
+          <span class="rk-title">Ranking {{ esFinalizada ? 'completo' : 'general' }}</span>
+          <input
+            class="rk-busqueda"
+            type="text"
+            placeholder="Buscar participante…"
+            [value]="filtroBusqueda"
+            (input)="onFiltroChange($event)" />
+        </div>
+
+        <!-- Pista "ir a mi posición" cuando no estoy en la página actual -->
+        @if (miPosicion > 0 && !esMiFilaVisible && !filtroBusqueda) {
+          <button class="rk-ir-mia" (click)="irAMiPagina()">
+            <i class="fa-solid fa-location-dot"></i> Estás en la posición #{{ miPosicion }} — Ir a mi fila
+          </button>
+        }
+
+        <!-- Tabla -->
+        <div class="rk-table">
+          <div class="rk-thead">
+            <span class="rk-c-pos">Pos.</span>
+            <span class="rk-c-nombre">Jugador</span>
+            <span class="rk-c-pts">Pts</span>
+            <span class="rk-c-est"></span>
+          </div>
+
+          @for (fila of rankingPaginado; track fila.jugadaId) {
+            <div class="rk-row rk-row-clickable"
+                 [class.rk-row-ganador]="fila.esGanador"
+                 [class.rk-row-yo]="esFilaPropia(fila)"
+                 [class.rk-row-ganador-yo]="fila.esGanador && esFilaPropia(fila)"
+                 (click)="toggleDetalleFila(fila.jugadaId)">
+              <span class="rk-c-pos">{{ fila.posicion }}</span>
+              <span class="rk-c-nombre">
+                @if (fila.esGanador) { <i class="fa-solid fa-trophy fa-gold rk-trofeo-icon"></i> }
+                {{ fila.nombreJugador }}
+                @if (esFilaPropia(fila)) { <span class="rk-tu-badge">Tú</span> }
+              </span>
+              <span class="rk-c-pts">{{ fila.puntosObtenidos ?? '—' }}</span>
+              <span class="rk-c-est">
+                <span class="rk-expand-icon" [class.abierto]="filaExpandidaId === fila.jugadaId">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </span>
+              </span>
+            </div>
+
+            <!-- Desglose de pronósticos evaluados: transparencia del puntaje -->
+            @if (filaExpandidaId === fila.jugadaId) {
+              <div class="rk-detalle">
+                @if (fila.pronosticos && fila.pronosticos.length > 0) {
+                  @for (pr of fila.pronosticos; track pr.id) {
+                    <div class="rk-detalle-item">
+                      <span class="rk-detalle-partido">{{ pr.equipoLocal }} vs {{ pr.equipoVisitante }}</span>
+                      <div class="rk-detalle-linea2">
+                        <span class="rk-detalle-pronostico">{{ pr.tipoPronosticoNombre }}: {{ pr.opcionPronosticoDescripcion }}</span>
+                        <span class="rk-detalle-pts" [class.acerto]="(pr.puntosObtenidos ?? 0) > 0">
+                          {{ (pr.puntosObtenidos ?? 0) > 0 ? '+' + pr.puntosObtenidos : '0' }} pts
+                        </span>
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  <div class="rk-detalle-empty">Aún no hay pronósticos evaluados para esta jugada.</div>
+                }
+              </div>
+            }
+          }
+
+          @if (rankingFiltrado.length === 0) {
+            <div class="rk-empty">Sin resultados para "{{ filtroBusqueda }}"</div>
+          }
+        </div>
+
+        <!-- Paginación -->
+        @if (totalPaginas > 1) {
+          <div class="rk-paginacion">
+            <button class="rk-btn-pag" [disabled]="paginaActual === 1"
+                    (click)="irAPagina(paginaActual - 1)"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
+            <span class="rk-pag-info">{{ paginaActual }} / {{ totalPaginas }}</span>
+            <button class="rk-btn-pag" [disabled]="paginaActual === totalPaginas"
+                    (click)="irAPagina(paginaActual + 1)">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        }
+
+      </div><!-- /rk-section -->
+    }
+
+    <!-- ── Aviso estado CREADA ──────────────────────────────────── -->
+    @if (esCreada) {
+      <div class="aviso-creada">
+        <i class="fa-solid fa-pen-to-square"></i> Tu jugada está en borrador. Completa tus pronósticos y coordina el pago con la administración.
+        Podrás editar o eliminarla mientras tenga este estado.
+      </div>
+    }
+
+    <!-- ── Barra de progreso ────────────────────────────────────── -->
+    @if (quiniela?.partidos?.length) {
+      <div class="progreso-bar-wrap">
+        <div class="progreso-label">
+          <span>Pronósticos completados</span>
+          <span>{{ progreso.completados }} / {{ progreso.total }}</span>
+        </div>
+        <div class="progreso-bar">
+          <div class="progreso-fill"
+               [style.width.%]="progreso.total ? (progreso.completados / progreso.total) * 100 : 0">
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ── Sección partidos ─────────────────────────────────────── -->
+    <div class="section-header">
+      <h2><i class="fa-solid fa-futbol"></i> Partidos</h2>
+      @if (esCreada) {
+        <span class="info-note">Elige UN tipo de pronóstico por partido. Puedes editarlo.</span>
+      }
+    </div>
+
+    @if (!quiniela?.partidos?.length) {
+      <div class="no-partidos"><p>Cargando partidos...</p></div>
+    } @else if (esEnJuego) {
+
+      <!-- ──────────────────────────────────────────────────────────── -->
+      <!-- VISTA OBSERVADOR (EN_JUEGO) — solo lectura                        -->
+      <!-- ──────────────────────────────────────────────────────────── -->
+      <div class="partidos-list partidos-en-juego">
+        @for (p of quiniela!.partidos!; track p.id; let idx = $index) {
+          <div class="partido-ej" [ngClass]="estadoPartidoClass(p.estado)">
+
+            <!-- Indicador de estado -->
+            <div class="pej-estado-col">
+              @if (p.estado === 'FINALIZADO') {
+                <span class="pej-dot pej-dot-fin"><i class="fa-solid fa-check fa-ok"></i></span>
+              } @else if (p.estado === 'EN_JUEGO') {
+                <span class="pej-dot pej-dot-live"></span>
+              } @else {
+                <span class="pej-dot pej-dot-pend"><i class="fa-regular fa-clock"></i></span>
+              }
+            </div>
+
+            <!-- Info partido -->
+            <div class="pej-info">
+              <div class="pej-equipos">
+                <span>{{ p.equipoLocal }}</span>
+                @if (p.estado === 'FINALIZADO' && p.marcadorLocal !== null) {
+                  <span class="pej-marcador-inline">{{ p.marcadorLocal }} — {{ p.marcadorVisitante }}</span>
+                } @else {
+                  <span class="pej-vs">vs</span>
+                }
+                <span>{{ p.equipoVisitante }}</span>
+              </div>
+              <div class="pej-meta">
+                <span class="pej-estado-label" [ngClass]="estadoPartidoClass(p.estado)">
+                  <i [class]="iconEstadoPartido(p.estado)"></i> {{ labelEstadoPartido(p.estado) }}
+                </span>
+                <span class="pej-fecha">{{ p.fechaPartido | date:'dd/MM/yy h:mm a' }}</span>
+              </div>
+
+              <!-- Resultado si finalizado -->
+              @if (p.estado === 'FINALIZADO' && p.marcadorLocal !== null) {
+                <div class="pej-resultado">                  
+                  <div class="pej-resultado-detalle">
+                    @if (p.totalCorners !== null) {
+                      <span class="pej-det-item"><i class="fa-solid fa-flag"></i> {{ p.totalCorners }} córners</span>
+                    }
+                    @if (p.ambosMarcan !== null) {
+                      <span class="pej-det-item">
+                        @if (p.ambosMarcan) { <i class="fa-solid fa-futbol"></i> Ambos marcaron } @else { <i class="fa-solid fa-ban"></i> Ambos no marcaron }
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- En curso: aviso sin marcador -->
+              @if (p.estado === 'EN_JUEGO') {
+                <div class="pej-en-curso-hint"><i class="fa-solid fa-stopwatch"></i> Partido en curso — resultado aún no disponible</div>
+              }
+
+              <!-- Suspendido / Pospuesto -->
+              @if (p.estado === 'SUSPENDIDO' || p.estado === 'POSPUESTO') {
+                <div class="pej-en-curso-hint">{{ p.estado === 'SUSPENDIDO' ? 'Partido suspendido' : 'Partido pospuesto' }} — pronósticos con 0 pts</div>
+              }
+            </div>
+
+            <!-- Pronóstico del jugador -->
+            <div class="pej-pronostico">
+              @if (pronosticoPorPartido[p.id]; as pr) {
+                <div class="pej-pr-wrap">
+                  <span class="pej-pr-tipo">{{ pr.tipoPronosticoNombre }}</span>
+                  <span class="pej-pr-opcion">{{ pr.opcionPronosticoDescripcion }}</span>
+                  @if (p.estado === 'FINALIZADO') {
+                    @if (pr.puntosObtenidos !== null && pr.puntosObtenidos > 0) {
+                      <span class="pej-puntos pej-puntos-ok"><i class="fa-solid fa-star fa-gold"></i> +{{ pr.puntosObtenidos }} pts</span>
+                    } @else if (pr.puntosObtenidos !== null) {
+                      <span class="pej-puntos pej-puntos-ko"><i class="fa-solid fa-xmark fa-danger"></i> 0 pts</span>
+                    }
+                  }
+                  @if (puedeEditarPronostico(p)) {
+                    <button class="btn-editar-pr"
+                            (click)="abrirFormEditar(p, pr)"
+                            [class.active]="partidoSeleccionado === p.id && modoForm === 'editar'">
+                    Ver mi pronóstico
+                    </button>
+                  }
+                </div>
+              } @else {
+                @if (puedeEditarPronostico(p)) {
+                  <button class="btn-add-pronostico btn-add-pej"
+                          (click)="abrirFormAgregar(p)"
+                          [class.active]="partidoSeleccionado === p.id">
+                    + Añadir pronóstico
+                  </button>
+                } @else {
+                  <span class="pej-sin-pr">Sin pronóstico</span>
+                }
+              }
+            </div>
+
+            <!-- Formulario inline (editar / agregar) cuando el partido es PENDIENTE -->
+            @if (partidoSeleccionado === p.id && puedeEditarPronostico(p)) {
+              <div class="pronostico-form pej-form-inline">
+                <div class="form-modo-label">
+                  @if (modoForm === 'editar') { Visualizando pronóstico } @else { + Nuevo pronóstico }
+                </div>
+                @if (errorPronostico) {
+                  <div class="alert-error small">{{ errorPronostico }}</div>
+                }
+                <div class="form-step">
+                  <div class="form-label">1. Tipo de pronóstico</div>
+                  <div class="tipo-grid">
+                    @for (t of tipos; track t.id) {
+                      <button class="btn-tipo"
+                              [class.selected]="tipoSeleccionado?.id === t.id"
+                              (click)="seleccionarTipo(t)">
+                        <strong>{{ t.nombre }}</strong>
+                        <small>{{ t.puntos }} pt{{ t.puntos !== 1 ? 's' : '' }}</small>
+                      </button>
+                    }
+                  </div>
+                </div>
+                @if (tipoSeleccionado) {
+                  <div class="form-step">
+                    <div class="form-label">2. Tu pronóstico — {{ tipoSeleccionado.nombre }}</div>
+                    <div class="opcion-grid">
+                      @for (o of opcionesDelTipo; track o.id) {
+                        <button class="btn-opcion"
+                                [class.selected]="opcionSeleccionada === o.id"
+                                (click)="opcionSeleccionada = o.id">
+                          {{ o.descripcion }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+                <div class="form-actions">
+                  <button class="btn-cancel" (click)="cerrarForm()">Cerrar</button>
+                
+                </div>
+              </div>
+            }
+
+          </div><!-- /partido-ej -->
+        }
+      </div>
+
+      <p class="ej-footer-hint">
+        <i class="fa-solid fa-circle-info"></i> Los puntos y resultados se actualizan cuando la administración registra el resultado de cada partido.
+      </p>
+
+    } @else {
+
+      <!-- Vista edición normal (CREADA / PENDIENTE / etc.) -->
+      <div class="partidos-list">
+        @for (p of quiniela!.partidos!; track p.id; let idx = $index; let last = $last) {
+          <div class="partido-card" [class.partido-completo]="pronosticoPorPartido[p.id]">
+
+            <div class="partido-num">Partido {{ idx + 1 }} de 8</div>
+
+            <div class="partido-header">
+              <div class="partido-vs">
+                <div class="equipo-wrap">
+                  <span class="equipo">{{ p.equipoLocal }}</span>
+                  <span class="equipo-rol">Local</span>
+                </div>
+                @if (p.marcadorLocal !== null && p.marcadorVisitante !== null) {
+                  <span class="marcador-vs">{{ p.marcadorLocal }} — {{ p.marcadorVisitante }}</span>
+                } @else {
+                  <span class="vs">VS</span>
+                }
+                <div class="equipo-wrap">
+                  <span class="equipo">{{ p.equipoVisitante }}</span>
+                  <span class="equipo-rol">Visitante</span>
+                </div>
+              </div>
+              <div class="partido-meta">
+                <span class="p-fecha">{{ p.fechaPartido | date:'dd/MM/yy h:mm a' }}</span>
+                <span class="p-badge"
+                      [class.finalizado]="p.estado === 'FINALIZADO'"
+                      [class.en-juego]="p.estado === 'EN_JUEGO'">{{ p.estado }}</span>
+              </div>
+            </div>
+
+            <!-- Detalle resultado (FINALIZADO) -->
+            @if (p.estado === 'FINALIZADO' && p.marcadorLocal !== null) {
+              <div class="resultado-card-detalle">
+                @if (p.totalCorners !== null) {
+                  <span class="rcd-item"><i class="fa-solid fa-flag"></i> {{ p.totalCorners }} córners</span>
+                }
+                @if (p.ambosMarcan !== null) {
+                  <span class="rcd-item">
+                    @if (p.ambosMarcan) { <i class="fa-solid fa-futbol"></i> Ambos marcaron } @else { <i class="fa-solid fa-ban"></i> Ambos no marcaron }
+                  </span>
+                }
+              </div>
+            }
+
+            @if (p.descripcion) {
+              <p class="partido-descripcion">{{ p.descripcion }}</p>
+            }
+
+            <!-- Pronóstico registrado -->
+            @if (pronosticoPorPartido[p.id]; as pr) {
+              <div class="pronostico-registrado">
+                <span class="pr-checkmark">Tu pronóstico:</span>
+                <div class="pr-info">
+                  <span class="tipo-label">{{ pr.tipoPronosticoNombre }}</span>
+                  <span class="opcion-val">{{ pr.opcionPronosticoDescripcion }}</span>
+                </div>
+                @if (pr.puntosObtenidos !== null) {
+                  <span class="puntos-chip">+{{ pr.puntosObtenidos }} pts</span>
+                }
+                <!-- Botón editar (visible hasta que el partido comience) -->
+                @if (puedeEditarPronostico(p)) {
+                  <button class="btn-editar-pr"
+                          (click)="abrirFormEditar(p, pr)"
+                          [class.active]="partidoSeleccionado === p.id && modoForm === 'editar'">
+                    <i class="fa-solid fa-pen"></i> Editar
+                  </button>
+                }
+              </div>
+            }
+
+            <!-- Formulario activo (agregar o editar) -->
+            @if (partidoSeleccionado === p.id) {
+              <div class="pronostico-form">
+                <div class="form-modo-label">
+                  @if (modoForm === 'editar') { <i class="fa-solid fa-pen"></i> Editando pronóstico } @else { + Nuevo pronóstico }
+                </div>
+                @if (errorPronostico) {
+                  <div class="alert-error small">{{ errorPronostico }}</div>
+                }
+
+                <!-- Paso 1: Tipo -->
+                <div class="form-step">
+                  <div class="form-label">1. Tipo de pronóstico</div>
+                  <div class="tipo-grid">
+                    @for (t of tipos; track t.id) {
+                      <button class="btn-tipo"
+                              [class.selected]="tipoSeleccionado?.id === t.id"
+                              (click)="seleccionarTipo(t)">
+                        <strong>{{ t.nombre }}</strong>
+                        <small>{{ t.puntos }} pt{{ t.puntos !== 1 ? 's' : '' }}</small>
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <!-- Paso 2: Opción -->
+                @if (tipoSeleccionado) {
+                  <div class="form-step">
+                    <div class="form-label">2. Tu pronóstico — {{ tipoSeleccionado.nombre }}</div>
+                    <div class="opcion-grid">
+                      @for (o of opcionesDelTipo; track o.id) {
+                        <button class="btn-opcion"
+                                [class.selected]="opcionSeleccionada === o.id"
+                                (click)="opcionSeleccionada = o.id">
+                          {{ o.descripcion }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <div class="form-actions">
+                  <button class="btn-cancel" (click)="cerrarForm()">Cancelar</button>
+                  <button class="btn-save"
+                          [disabled]="!tipoSeleccionado || !opcionSeleccionada || guardandoPronostico"
+                          (click)="guardarPronostico()">
+                    @if (guardandoPronostico) { Guardando... }
+                    @else if (modoForm === 'editar') { <i class="fa-solid fa-check fa-ok"></i> Guardar Cambios }
+                    @else { <i class="fa-solid fa-check fa-ok"></i> Guardar Pronóstico }
+                  </button>
+                </div>
+              </div>
+            }
+
+            <!-- Sin pronóstico: botón agregar (solo cuando el partido aun no comienza) -->
+            @if (!pronosticoPorPartido[p.id] && puedeEditarPronostico(p) && partidoSeleccionado !== p.id) {
+              <div class="pronostico-action">
+                <button class="btn-add-pronostico" (click)="abrirFormAgregar(p)">
+                  + Agregar Pronóstico
+                </button>
+              </div>
+            }
+
+            <!-- Sin pronóstico y partido finalizado -->
+            @if (!pronosticoPorPartido[p.id] && p.estado === 'FINALIZADO') {
+              <p class="sin-pronostico-warn">Sin pronóstico registrado</p>
+            }
+
+          </div>
+        }
+      </div>
+
+      <!-- ── Acciones rápidas después del partido 8 ────────────────── -->
+      <div class="acciones-bottom">
+        @if (errorNuevaJugada) {
+          <div class="alert-error small">{{ errorNuevaJugada }}</div>
+        }
+        <div class="acciones-btns">
+          @if (puedeCrearNuevaJugada) {
+            <button class="btn-nueva-jugada"
+                    [disabled]="creandoNuevaJugada"
+                    (click)="crearNuevaJugada()">
+              @if (creandoNuevaJugada) {
+                <span class="btn-spinner"></span> Creando...
+              } @else {
+                <i class="fa-solid fa-ticket"></i> Crear nueva jugada — {{ jugada!.quinielaNombre }}
+              }
+            </button>
+          }
+          @if (jugada!.estado === 'CREADA') {
+            <a routerLink="/jugador/pagar" class="btn-ir-pagar">
+              <i class="fa-solid fa-credit-card"></i> Pagar Jugada(s)
+            </a>
+          }
+        </div>
+      </div>
+    }
+  }
+
+</div>
+

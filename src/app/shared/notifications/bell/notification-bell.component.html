@@ -1,0 +1,48 @@
+<div class="bell-wrapper">
+  <button type="button" class="bell-btn" (click)="toggle()" aria-label="Notificaciones">
+    <i class="fa-solid fa-bell"></i>
+    @if ((unreadCount$ | async); as count) {
+      @if (count > 0) {
+        <span class="bell-badge">{{ count > 99 ? '99+' : count }}</span>
+      }
+    }
+  </button>
+
+  @if (panelOpen) {
+    <div class="bell-panel">
+      <div class="bell-panel__header">
+        <span>Notificaciones</span>
+        <div class="bell-panel__actions">
+          <button type="button" class="btn-link" (click)="marcarTodasLeidas()">Marcar todas como leídas</button>
+          <button type="button" class="btn-link btn-link--danger" (click)="vaciarPanel()">Eliminar</button>
+        </div>
+      </div>
+
+      <div class="bell-panel__list">
+        @if (cargando) {
+          <div class="bell-empty">Cargando…</div>
+        } @else if (notificaciones.length === 0) {
+          <div class="bell-empty">No tienes notificaciones.</div>
+        } @else {
+          @for (n of notificaciones; track n.id) {
+            <button type="button" class="bell-item" [class.unread]="!n.leida" (click)="onNotificacionClick(n)">
+              <span class="bell-item__icon" [class]="display[n.tipo].colorClass">
+                <i [class]="display[n.tipo].icon"></i>
+              </span>
+              <span class="bell-item__body">
+                <span class="bell-item__titulo">{{ n.titulo }}</span>
+                <span class="bell-item__mensaje">{{ n.mensaje }}</span>
+                <span class="bell-item__fecha">{{ n.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span>
+              </span>
+              @if (!n.leida) {
+                <span class="bell-item__dot" aria-hidden="true"></span>
+              }
+            </button>
+          }
+        }
+      </div>
+
+      <button type="button" class="bell-panel__footer" (click)="verHistorial()">Ver historial completo</button>
+    </div>
+  }
+</div>

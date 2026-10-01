@@ -1,0 +1,581 @@
+<div class="page">
+
+  @if (error) { <div class="alert-error">{{ error }}</div> }
+
+  @if (cargando) {
+    <div class="loading-state"><div class="spinner"></div><p>Cargando quiniela...</p></div>
+  }
+
+  @if (!cargando && quiniela) {
+
+    <!-- ── QUINIELA HEADER ─────────────────────────────── -->
+    <div class="q-header">
+      <div class="q-header-left">
+        <a routerLink="/admin/quinielas" class="back-link"><i class="fa-solid fa-arrow-left"></i> Quinielas</a>
+        <div class="q-title-row">
+          <h1>{{ quiniela.nombre }}</h1>
+          <span class="q-badge" [ngClass]="estadoQClass(quiniela.estado)">{{ quiniela.estado }}</span>
+          @if (quiniela.estado === 'CREADA') {
+            <button class="btn-edit" (click)="abrirEdicion()" title="Editar quiniela"><i class="fa-solid fa-pen"></i> Editar</button>
+          }
+        </div>
+        @if (quiniela.descripcion) {
+          <p class="q-desc">{{ quiniela.descripcion }}</p>
+        }
+      </div>
+      <div class="q-header-right">
+        <div class="q-meta-grid">
+          <div class="q-meta"><span class="meta-label">Costo</span><span class="meta-val gold">$ {{ quiniela.costo | number:'1.2-2' }}</span></div>
+          <div class="q-meta"><span class="meta-label">Partidos</span><span class="meta-val">{{ quiniela.totalPartidos }}/8</span></div>
+          <div class="q-meta"><span class="meta-label">Participantes</span><span class="meta-val">{{ quiniela.totalParticipantes }}</span></div>
+         <!-- <div class="q-meta"><span class="meta-label">Bolsa acumulada</span><span class="meta-val gold">$ {{ quiniela.bolsaAcumulada ?? 0 | number:'1.2-2' }}</span></div> -->
+          <div class="q-meta"><span class="meta-label">Bolsa neta a repartir</span><span class="meta-val gold">$ {{ bolsaNeta | number:'1.2-2' }}</span></div>
+          <div class="q-meta"><span class="meta-label">Inicio</span><span class="meta-val">{{ quiniela.fechaInicio | date:'dd/MM/yy h:mm a' }}</span></div>
+          <div class="q-meta"><span class="meta-label">Cierre</span><span class="meta-val">{{ quiniela.fechaCierre | date:'dd/MM/yy h:mm a' }}</span></div>
+        </div>
+        <!-- Estado transitions -->
+        @if (transicionesDisponibles.length > 0) {
+          <div class="estado-actions">
+            @for (t of transicionesDisponibles; track t) {
+              <div class="estado-action-wrap">
+                <button class="btn-estado"
+                        [disabled]="!condicionEstado(t).ok || guardandoEstadoQ"
+                        [class.btn-estado--disabled]="!condicionEstado(t).ok"
+                        (click)="cambiarEstadoQuiniela(t)">
+                  @if (guardandoEstadoQ) { <span class="btn-spinner"></span> }
+                  Pasar a <strong>{{ t }}</strong>
+                </button>
+                @if (!condicionEstado(t).ok) {
+                  <p class="estado-warning"><i class="fa-solid fa-triangle-exclamation"></i> {{ condicionEstado(t).mensaje }}</p>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ── EDITAR QUINIELA (solo CREADA) ─────────────────── -->
+    @if (exitoEdicion) {
+      <div class="alert-success"><i class="fa-solid fa-circle-check fa-ok"></i> {{ exitoEdicion }}</div>
+    }
+
+    @if (mostrarFormEdicion && quiniela.estado === 'CREADA') {
+      <div class="form-card edicion-form-card">
+        <h3><i class="fa-solid fa-pen"></i> Editar Quiniela</h3>
+        @if (errorEdicion) { <div class="alert-error">{{ errorEdicion }}</div> }
+        <form [formGroup]="edicionForm" (ngSubmit)="guardarEdicion()">
+          <div class="fields-row">
+            <div class="field field--wide">
+              <label>Nombre <span class="required">*</span></label>
+              <input type="text" formControlName="nombre" placeholder="Ej. Quiniela Jornada 10" />
+              @if (edicionForm.get('nombre')!.touched && edicionForm.get('nombre')!.errors?.['required']) {
+                <span class="field-error">Campo obligatorio</span>
+              }
+              @if (edicionForm.get('nombre')!.touched && edicionForm.get('nombre')!.errors?.['maxlength']) {
+                <span class="field-error">Máximo 150 caracteres</span>
+              }
+            </div>
+          </div>
+          <div class="fields-row">
+            <div class="field field--wide">
+              <label>Descripción</label>
+              <input type="text" formControlName="descripcion" placeholder="Descripción opcional" />
+              @if (edicionForm.get('descripcion')!.touched && edicionForm.get('descripcion')!.errors?.['maxlength']) {
+                <span class="field-error">Máximo 500 caracteres</span>
+              }
+            </div>
+          </div>
+          <div class="fields-row">
+            <div class="field">
+              <label>Costo <span class="required">*</span></label>
+              <input type="number" formControlName="costo" min="0.01" step="0.01" placeholder="0.00" />
+              @if (edicionForm.get('costo')!.touched && edicionForm.get('costo')!.errors?.['required']) {
+                <span class="field-error">Campo obligatorio</span>
+              }
+              @if (edicionForm.get('costo')!.touched && edicionForm.get('costo')!.errors?.['min']) {
+                <span class="field-error">Debe ser mayor a 0</span>
+              }
+            </div>
+            <div class="field"><!-- spacer --></div>
+          </div>
+          <div class="fields-row">
+            <div class="field">
+              <label>Fecha de Inicio <span class="required">*</span></label>
+              <input type="datetime-local" formControlName="fechaInicio" />
+              @if (edicionForm.get('fechaInicio')!.touched && edicionForm.get('fechaInicio')!.errors?.['required']) {
+                <span class="field-error">Campo obligatorio</span>
+              }
+            </div>
+            <div class="field">
+              <label>Fecha de Cierre <span class="required">*</span></label>
+              <input type="datetime-local" formControlName="fechaCierre" />
+              @if (edicionForm.get('fechaCierre')!.touched && edicionForm.get('fechaCierre')!.errors?.['required']) {
+                <span class="field-error">Campo obligatorio</span>
+              }
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" (click)="cancelarEdicion()">Cancelar</button>
+            <button type="submit" class="btn-primary" [disabled]="guardandoEdicion">
+              @if (guardandoEdicion) { <span class="spinner-sm"></span> Guardando... }
+              @else { Guardar Cambios }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- ── PARTIDOS SECTION ───────────────────────────── -->
+    <div class="section-header">
+      <h2><i class="fa-solid fa-futbol"></i> Partidos ({{ quiniela.partidos.length }}/8)</h2>
+      @if (puedeAgregarPartido) {
+        <button class="btn-primary" (click)="mostrarFormPartido = !mostrarFormPartido">
+          @if (mostrarFormPartido) { <i class="fa-solid fa-xmark"></i> Cancelar } @else { + Agregar Partido }
+        </button>
+      }
+      @if (!puedeAgregarPartido && quiniela.partidos.length >= 8) {
+        <span class="info-chip"><i class="fa-solid fa-circle-check fa-ok"></i> 8 partidos completos</span>
+      }
+      @if (!puedeAgregarPartido && quiniela.estado !== 'CREADA') {
+        <span class="info-chip"><i class="fa-solid fa-circle-info"></i> Solo se agregan partidos en estado CREADA</span>
+      }
+    </div>
+
+    <!-- Formulario agregar partido -->
+    @if (mostrarFormPartido) {
+      <div class="form-card partido-form-card">
+        <h3>Nuevo Partido</h3>
+        @if (errorPartido) { <div class="alert-error">{{ errorPartido }}</div> }
+        <form [formGroup]="partidoForm" (ngSubmit)="agregarPartido()">
+          <div class="fields-row">
+            <div class="field">
+              <label>Equipo Local <span class="required">*</span></label>
+              <input type="text" formControlName="equipoLocal" placeholder="Ej. Real Madrid" />
+              @if (pf['equipoLocal'].touched && pf['equipoLocal'].errors?.['required']) {
+                <span class="field-error">Campo obligatorio</span>
+              }
+            </div>
+            <div class="field">
+              <label>Equipo Visitante <span class="required">*</span></label>
+              <input type="text" formControlName="equipoVisitante" placeholder="Ej. Barcelona" />
+              @if (pf['equipoVisitante'].touched && pf['equipoVisitante'].errors?.['required']) {
+                <span class="field-error">Campo obligatorio</span>
+              }
+            </div>
+          </div>
+          <div class="fields-row">
+            <div class="field">
+              <label>Descripción</label>
+              <input type="text" formControlName="descripcion" placeholder="Ej. Jornada 12 - Semifinal" />
+            </div>
+            <div class="field">
+              <label>Fecha del partido <span class="required">*</span></label>
+              <input type="datetime-local" formControlName="fechaPartido" />
+              @if (pf['fechaPartido'].touched && pf['fechaPartido'].errors?.['required']) {
+                <span class="field-error">Campo obligatorio</span>
+              }
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" (click)="mostrarFormPartido = false">Cancelar</button>
+            <button type="submit" class="btn-primary" [disabled]="guardandoPartido">
+              @if (guardandoPartido) { <span class="spinner-sm"></span> Guardando... }
+              @else { Agregar Partido }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Lista de partidos -->
+    @if (exitoEditPartido) {
+      <div class="alert-success"><i class="fa-solid fa-circle-check fa-ok"></i> {{ exitoEditPartido }}</div>
+    }
+    @if (quiniela.partidos.length === 0) {
+      <div class="empty-partidos">
+        <span><i class="fa-solid fa-futbol"></i></span>
+        <p>No hay partidos aún. Agrega hasta 8 partidos antes de publicar la quiniela.</p>
+      </div>
+    } @else {
+      <div class="partidos-list">
+        @for (p of quiniela.partidos; track p.id) {
+          <div class="partido-card">
+
+            <!-- Cabecera del partido -->
+            <div class="partido-header" (click)="togglePartido(p.id)">
+              <div class="partido-vs">
+                <span class="equipo local">{{ p.equipoLocal }}</span>
+                <span class="vs-sep">
+                  @if (p.marcadorLocal !== null && p.marcadorVisitante !== null) {
+                    <strong class="marcador">{{ p.marcadorLocal }} - {{ p.marcadorVisitante }}</strong>
+                  } @else {
+                    <span class="vs">VS</span>
+                  }
+                </span>
+                <span class="equipo visitante">{{ p.equipoVisitante }}</span>
+              </div>
+              <div class="partido-meta">
+                <span class="p-fecha">{{ p.fechaPartido | date:'dd/MM/yy h:mm a' }}</span>
+                <span class="p-badge" [ngClass]="estadoPClass(p.estado)">{{ p.estado }}</span>
+                @if (quiniela.estado === 'CREADA' && p.estado === 'PENDIENTE') {
+                  <button class="btn-edit" (click)="$event.stopPropagation(); abrirEditarPartido(p)" title="Editar partido"><i class="fa-solid fa-pen"></i></button>
+                }
+                <span class="toggle-icon">{{ partidoAbierto === p.id ? '▲' : '▼' }}</span>
+              </div>
+            </div>
+
+            <!-- Panel expandible: gestión del partido -->
+            @if (partidoAbierto === p.id) {
+              <div class="partido-panel">
+
+                @if (errorResultado) { <div class="alert-error small">{{ errorResultado }}</div> }
+
+                <!-- Editar datos del partido (solo CREADA + PENDIENTE) -->
+                @if (quiniela.estado === 'CREADA' && p.estado === 'PENDIENTE' && editandoPartidoId === p.id && editPartidoForms[p.id]) {
+                  <div class="panel-section edit-partido-section">
+                    <h4><i class="fa-solid fa-pen"></i> Editar Partido</h4>
+                    @if (errorEditPartido) { <div class="alert-error small">{{ errorEditPartido }}</div> }
+                    <form [formGroup]="editPartidoForms[p.id]" (ngSubmit)="guardarEditarPartido(p)">
+                      <div class="fields-row">
+                        <div class="field">
+                          <label>Equipo Local <span class="required">*</span></label>
+                          <input type="text" formControlName="equipoLocal" />
+                          @if (editPartidoForms[p.id].get('equipoLocal')!.touched && editPartidoForms[p.id].get('equipoLocal')!.errors?.['required']) {
+                            <span class="field-error">Campo obligatorio</span>
+                          }
+                        </div>
+                        <div class="field">
+                          <label>Equipo Visitante <span class="required">*</span></label>
+                          <input type="text" formControlName="equipoVisitante" />
+                          @if (editPartidoForms[p.id].get('equipoVisitante')!.touched && editPartidoForms[p.id].get('equipoVisitante')!.errors?.['required']) {
+                            <span class="field-error">Campo obligatorio</span>
+                          }
+                        </div>
+                      </div>
+                      <div class="fields-row">
+                        <div class="field">
+                          <label>Descripción</label>
+                          <input type="text" formControlName="descripcion" placeholder="Ej. Jornada 12" />
+                        </div>
+                        <div class="field">
+                          <label>Fecha del Partido <span class="required">*</span></label>
+                          <input type="datetime-local" formControlName="fechaPartido" />
+                          @if (editPartidoForms[p.id].get('fechaPartido')!.touched && editPartidoForms[p.id].get('fechaPartido')!.errors?.['required']) {
+                            <span class="field-error">Campo obligatorio</span>
+                          }
+                        </div>
+                      </div>
+                      <div class="form-actions">
+                        <button type="button" class="btn-secondary" (click)="cancelarEditarPartido()">Cancelar</button>
+                        <button type="submit" class="btn-primary" [disabled]="guardandoEditPartido === p.id">
+                          @if (guardandoEditPartido === p.id) { <span class="spinner-sm"></span> Guardando... }
+                          @else { Guardar Cambios }
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                }
+
+                <!-- Cambiar estado del partido -->
+                <div class="panel-section">
+                  <h4>Estado del Partido</h4>
+                  <div class="estado-row">
+                    <select [value]="estadoPartido[p.id]" (change)="estadoPartido[p.id] = $any($event.target).value">
+                      @for (e of ESTADOS_PARTIDO; track e) {
+                        <option [value]="e" [selected]="estadoPartido[p.id] === e">{{ e }}</option>
+                      }
+                    </select>
+                    <button class="btn-save"
+                            (click)="guardarEstadoPartido(p)"
+                            [disabled]="guardandoEstadoPartido === p.id || !condicionEstadoPartido(p, estadoPartido[p.id]).ok">
+                      @if (guardandoEstadoPartido === p.id) { Guardando... } @else { Guardar Estado }
+                    </button>
+                  </div>
+                  @if (!condicionEstadoPartido(p, estadoPartido[p.id]).ok) {
+                    <p class="estado-warning"><i class="fa-solid fa-triangle-exclamation"></i> {{ condicionEstadoPartido(p, estadoPartido[p.id]).mensaje }}</p>
+                  }
+                </div>
+
+                <!-- Cargar resultados -->
+                <div class="panel-section">
+                  <h4>Cargar Resultados</h4>
+                  @if (p.estado === 'FINALIZADO') {
+                    <p class="info-msg"><i class="fa-solid fa-pen"></i> Partido finalizado. Puedes corregir un error de captura; los puntos se recalcularán.</p>
+                  }
+                  @if (resultadoForms[p.id]) {
+                    <form [formGroup]="resultadoForms[p.id]" (ngSubmit)="guardarResultados(p)">
+                      <div class="resultado-grid">
+                        <div class="field">
+                          <label>Goles {{ p.equipoLocal }}</label>
+                          <input type="number" formControlName="marcadorLocal" min="0" placeholder="0" />
+                        </div>
+                        <div class="field">
+                          <label>Goles {{ p.equipoVisitante }}</label>
+                          <input type="number" formControlName="marcadorVisitante" min="0" placeholder="0" />
+                        </div>
+                        <div class="field">
+                          <label>Total Corners</label>
+                          <input type="number" formControlName="totalCorners" min="0" placeholder="0" />
+                        </div>
+                        <div class="field checkbox-field">
+                          <label>
+                            <input type="checkbox" formControlName="ambosMarcan" />
+                            Ambos marcan
+                          </label>
+                        </div>
+                      </div>
+                      <div class="form-actions">
+                        <button type="submit" class="btn-save" [disabled]="guardandoResultado === p.id">
+                          @if (guardandoResultado === p.id) { <span class="spinner-sm"></span> Guardando... }
+                          @else if (p.estado === 'FINALIZADO') { <i class="fa-solid fa-floppy-disk"></i> Corregir Resultados }
+                          @else { <i class="fa-solid fa-floppy-disk"></i> Guardar Resultados }
+                        </button>
+                      </div>
+                    </form>
+                  }
+                </div>
+
+                <!-- Evaluación automática -->
+                @if (puedeEvaluarPartido(p)) {
+                  <div class="panel-section eval-auto-section">
+                    <h4><i class="fa-solid fa-trophy fa-gold"></i> Evaluación de Pronósticos</h4>
+                    <p class="eval-auto-msg">
+                      <i class="fa-solid fa-circle-check fa-ok"></i> La evaluación de pronósticos se realiza <strong>automáticamente</strong>
+                      cuando el partido pasa a estado
+                      <strong>FINALIZADO</strong>, <strong>SUSPENDIDO</strong> o <strong>POSPUESTO</strong>.
+                    </p>
+                  </div>
+                }
+
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── RANKING EN TIEMPO REAL / DEFINITIVO ───────────────── -->
+    @if (quiniela.estado === 'EN_JUEGO' || quiniela.estado === 'FINALIZADA') {
+      <div class="ranking-panel">
+        <div class="ranking-panel-header">
+          <span class="ranking-panel-title">
+            @if (quiniela.estado === 'EN_JUEGO') { <i class="fa-solid fa-chart-column"></i> Ranking en tiempo real }
+            @else { <i class="fa-solid fa-trophy fa-gold"></i> Ranking definitivo }
+          </span>
+          @if (ranking) {
+            <span class="ranking-total">{{ ranking.totalParticipantes }} participantes</span>
+          }
+        </div>
+
+        @if (cargandoRanking) {
+          <div class="ranking-loading"><div class="spinner-sm-admin"></div><span>Cargando ranking…</span></div>
+        }
+        @if (ranking && ranking.ranking.length > 0) {
+          <div class="ranking-table">
+            <div class="ranking-thead">
+              <span class="rk-pos">Pos.</span>
+              <span class="rk-nombre">Jugador</span>
+              <span class="rk-pts">Puntos</span>
+              <span class="rk-estado"></span>
+            </div>
+            @for (fila of ranking.ranking; track fila.jugadaId) {
+              <div class="ranking-row ranking-row-clickable" [class.ranking-row-ganador]="fila.esGanador"
+                   (click)="toggleDetalleFila(fila.jugadaId)">
+                <span class="rk-pos">
+                  @if (fila.posicion === 1) { <i class="fa-solid fa-medal fa-gold"></i> }
+                  @else if (fila.posicion === 2) { <i class="fa-solid fa-medal fa-silver"></i> }
+                  @else if (fila.posicion === 3) { <i class="fa-solid fa-medal fa-bronze"></i> }
+                  @else { {{ fila.posicion }} }
+                </span>
+                <span class="rk-nombre">{{ fila.nombreJugador }}</span>
+                <span class="rk-pts">{{ fila.puntosObtenidos ?? '—' }}</span>
+                <span class="rk-estado">
+                  @if (fila.esGanador) { <span class="rk-ganador-badge">Ganador</span> }
+                  <span class="rk-expand-icon" [class.abierto]="filaExpandidaId === fila.jugadaId">▾</span>
+                </span>
+              </div>
+
+              <!-- Desglose: qué pronosticó el jugador y el resultado real de cada partido -->
+              @if (filaExpandidaId === fila.jugadaId) {
+                <div class="ranking-detalle">
+                  @if (fila.pronosticos && fila.pronosticos.length > 0) {
+                    @for (pr of fila.pronosticos; track pr.id) {
+                      <div class="ranking-detalle-item">
+                        <span class="rd-partido">{{ pr.equipoLocal }} vs {{ pr.equipoVisitante }}</span>
+                        <span class="rd-pronostico">{{ pr.tipoPronosticoNombre }}: {{ pr.opcionPronosticoDescripcion }}</span>
+                        <span class="rd-resultado">
+                          @if (pr.estadoPartido === 'FINALIZADO') {
+                            Real: {{ pr.marcadorLocal }}-{{ pr.marcadorVisitante }}, {{ pr.totalCorners }} córners, {{ pr.ambosMarcan ? 'ambos marcan' : 'ambos no marcan' }}
+                          } @else {
+                            {{ pr.estadoPartido }}
+                          }
+                        </span>
+                        <span class="rd-pts" [class.acerto]="(pr.puntosObtenidos ?? 0) > 0">
+                          @if (pr.evaluado) { {{ (pr.puntosObtenidos ?? 0) > 0 ? '+' + pr.puntosObtenidos : '0' }} pts }
+                          @else { pendiente }
+                        </span>
+                      </div>
+                    }
+                  } @else {
+                    <div class="ranking-detalle-empty">Esta jugada no tiene pronósticos registrados.</div>
+                  }
+                </div>
+              }
+            }
+          </div>
+        } @else if (!cargandoRanking) {
+          <p class="ranking-empty">Aún no hay jugadas con puntos evaluados.</p>
+        }
+      </div>
+    }
+
+
+    <!-- ── PANEL DE CIERRE / RESULTADOS FINALES ──────────────── -->
+    @if (quiniela.estado === 'FINALIZADA') {
+      <div class="cierre-panel">
+
+        @if (errorCierre) {
+          <div class="alert-error">{{ errorCierre }}</div>
+        }
+
+        @if (!cierre && !cerrando) {
+          <p class="cierre-pending">Cargando resultados del cierre…</p>
+        }
+
+        @if (cerrando) {
+          <div class="loading-state"><div class="spinner"></div><p>Ejecutando cierre…</p></div>
+        }
+
+        @if (cierre) {
+          <!-- Encabezado: estado definitivo -->
+          <div class="cierre-header">
+            <div class="cierre-badge"><i class="fa-solid fa-flag-checkered"></i> QUINIELA FINALIZADA</div>
+            <div class="cierre-meta">
+              <span>Cerrado por: La administración</span> <!-- <strong>{{ cierre.cerradoPorUsername }}</strong></span> -->
+              <span>Fecha: <strong>{{ cierre.fechaCierre | date:'dd/MM/yyyy HH:mm' }}</strong></span>
+              <span>Jugadas elegibles: <strong>{{ cierre.totalJugadasElegibles }}</strong></span>
+              <span>Puntaje máximo: <strong>{{ cierre.puntajeMaximo }} pts</strong></span>
+            </div>
+          </div>
+
+          <!-- Empate / desempate -->
+          @if (cierre.esEmpate) {
+            <div class="cierre-empate">
+              <span class="empate-icon"><i class="fa-solid fa-handshake"></i></span>
+              <div>
+                <strong>Empate entre {{ cierre.totalGanadores }} jugadores</strong>
+                @if (cierre.criterioDesempate) {
+                  <p class="empate-criterio">Criterio de desempate: <em>{{ cierre.criterioDesempate }}</em></p>
+                } @else {
+                  <p class="empate-criterio">El empate se mantiene — todos los ganadores reciben el premio.</p>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Lista de ganadores / ranking -->
+          <div class="cierre-ganadores">
+            <h3 class="cierre-section-title">
+              @if (cierre.esEmpate) { <i class="fa-solid fa-trophy fa-gold"></i> Ganadores } @else { <i class="fa-solid fa-trophy fa-gold"></i> Ganador }
+            </h3>
+            <div class="ganadores-list">
+              @for (g of cierre.ganadores; track g.jugadaId) {
+                <div class="ganador-row" [class.ganador-primero]="g.posicion === 1">
+                  <span class="ganador-pos">
+                    @if (g.posicion === 1) { <i class="fa-solid fa-medal fa-gold"></i> }
+                    @else if (g.posicion === 2) { <i class="fa-solid fa-medal fa-silver"></i> }
+                    @else if (g.posicion === 3) { <i class="fa-solid fa-medal fa-bronze"></i> }
+                    @else { #{{ g.posicion }} }
+                  </span>
+                  <span class="ganador-nombre">{{ g.nombreCompleto }}</span>
+                  <span class="ganador-jugada">Jugada #{{ g.jugadaId }}</span>
+                  <span class="ganador-pts">{{ g.puntosObtenidos }} pts</span>
+                  <span class="ganador-contacto">
+                    <span class="gc-email"><i class="fa-solid fa-envelope"></i> {{ g.email || '—' }}</span>
+                    <span class="gc-telefono"><i class="fa-solid fa-phone"></i> {{ g.telefono || '—' }}</span>
+                  </span>
+                  @if (g.criterioAplicado) {
+                    <span class="ganador-criterio">{{ g.criterioAplicado }}</span>
+                  }
+
+                  <!-- Entrega del premio monetario -->
+                  @if (premioDeJugada(g.jugadaId); as premio) {
+                    <div class="premio-box">
+                      <div class="premio-info">
+                        <span class="premio-monto">$ {{ premio.montoPremio | number:'1.2-2' }} MXN</span>
+                        <span class="premio-badge" [ngClass]="estadoPremioClass(premio.estadoPremio)">
+                          <i [class]="estadoPremioIcon(premio.estadoPremio)"></i> {{ estadoPremioLabel(premio.estadoPremio) }}
+                        </span>
+                        @if (premio.tieneComprobante) {
+                          <button type="button" class="btn-link-premio" (click)="verComprobantePremio(premio.ganadorId)">
+                            <i class="fa-solid fa-paperclip"></i> Ver comprobante
+                          </button>
+                        }
+                      </div>
+
+                      @if (errorPremio[premio.ganadorId]) {
+                        <div class="alert-error small">{{ errorPremio[premio.ganadorId] }}</div>
+                      }
+                      @if (exitoPremio[premio.ganadorId]) {
+                        <div class="alert-success"><i class="fa-solid fa-circle-check fa-ok"></i> {{ exitoPremio[premio.ganadorId] }}</div>
+                      }
+
+                      @if (premio.estadoPremio !== 'CONFIRMADO') {
+                        <div class="premio-upload-row">
+                          <input type="file" accept=".jpg,.jpeg,.png,.pdf"
+                                 (change)="onSeleccionarComprobantePremio($event, premio.ganadorId)" />
+                          <button type="button" class="btn-save"
+                                  [disabled]="subiendoComprobantePremio === premio.ganadorId || !premioFileSeleccionado[premio.ganadorId]"
+                                  (click)="subirComprobantePremio(premio.ganadorId)">
+                            @if (subiendoComprobantePremio === premio.ganadorId) { <span class="spinner-sm"></span> Subiendo... }
+                            @else { {{ premio.estadoPremio === 'PAGADO' ? 'Reemplazar comprobante' : 'Subir comprobante de pago' }} }
+                          </button>
+                        </div>
+                      }
+
+                      @if (premio.estadoPremio === 'CONFIRMADO') {
+                        <div class="premio-upload-row premio-upload-row-otros">
+                          <div class="premio-upload-inline">
+                            <input type="file" accept=".jpg,.jpeg,.png,.pdf"
+                                   (change)="onSeleccionarComprobantePremioOtros($event, premio.ganadorId)" />
+                            <button type="button" class="btn-save btn-secondary"
+                                    [disabled]="subiendoComprobantePremioOtros === premio.ganadorId || !premioOtrosFileSeleccionado[premio.ganadorId]"
+                                    (click)="subirComprobantePremioOtros(premio.ganadorId)">
+                              @if (subiendoComprobantePremioOtros === premio.ganadorId) { <span class="spinner-sm"></span> Subiendo... }
+                              @else { {{ premio.tieneComprobanteOtros ? 'Reemplazar comprobante público' : 'Subir comprobante público' }} }
+                            </button>
+                          </div>
+
+                          @if (premio.tieneComprobanteOtros) {
+                            <button type="button" class="btn-link-premio" (click)="verComprobantePremioOtros(premio.ganadorId)">
+                              <i class="fa-solid fa-eye"></i> Ver comprobante público
+                            </button>
+                          }
+                        </div>
+                      }
+
+                      @if (errorPremioOtros[premio.ganadorId]) {
+                        <div class="alert-error small">{{ errorPremioOtros[premio.ganadorId] }}</div>
+                      }
+                      @if (exitoPremioOtros[premio.ganadorId]) {
+                        <div class="alert-success"><i class="fa-solid fa-circle-check fa-ok"></i> {{ exitoPremioOtros[premio.ganadorId] }}</div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <p class="cierre-aviso">
+            <i class="fa-solid fa-circle-check fa-ok"></i> Los resultados son definitivos. No se realizarán cambios adicionales en esta quiniela.
+          </p>
+        }
+      </div>
+    }
+
+  }
+
+</div>

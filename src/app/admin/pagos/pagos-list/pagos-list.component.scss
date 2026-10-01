@@ -1,0 +1,431 @@
+@use 'breakpoints' as bp;
+
+// ── Variables ─────────────────────────────────────────────────────────
+$primary:    #6366f1;
+$primary-dk: #4f46e5;
+$primary-lt: #eef2ff;
+$gold:       #f0c040;
+$success:    #10b981;
+$warn:       #f59e0b;
+$danger:     #ef4444;
+$text:       #e0e0e0;
+$text-muted: #9b9bc0;
+$surface:    rgba(255,255,255,.04);
+$border:     rgba(255,255,255,.09);
+$card-bg:    rgba(255,255,255,.05);
+
+// ── Página ───────────────────────────────────────────────
+.page {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  color: $text;
+  -webkit-tap-highlight-color: transparent;
+
+  @include bp.tablet { padding: 1.5rem; }
+  @include bp.mobile  { padding: 1rem 0.85rem; }
+}
+
+// ── Header ──────────────────────────────────────────────────────────
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.75rem;
+  flex-wrap: nowrap;
+  gap: 1rem;
+
+  > div:first-child { flex: 1 1 auto; min-width: 0; }
+
+  h1 {
+    margin: 0 0 .25rem;
+    font-size: 1.6rem;
+    color: $gold;
+    overflow-wrap: break-word;
+  }
+  .page-sub { margin: 0; color: $text-muted; font-size: .875rem; }
+}
+
+// A 360px, mantener título + botón en una sola fila deja muy poco espacio.
+@include bp.mobile-s {
+  .page-header { flex-direction: column; align-items: stretch; }
+}
+
+.btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  flex-shrink: 0;
+  padding: .45rem .9rem;
+  min-height: 44px;
+  box-sizing: border-box;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 8px;
+  color: $text-muted;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { color: $text; border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.08); }
+  }
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────
+.filter-tabs {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .5rem 1rem;
+  min-height: 44px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  border: 1px solid $border;
+  background: $surface;
+  color: $text-muted;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: all .15s;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { color: $text; border-color: rgba(255,255,255,.2); }
+  }
+
+  &.active {
+    background: rgba(240,192,64,.12);
+    border-color: rgba(240,192,64,.4);
+    color: $gold;
+    font-weight: 600;
+  }
+}
+
+.tab-badge {
+  background: $warn;
+  color: #000;
+  font-size: .7rem;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: .1rem .45rem;
+  min-width: 18px;
+  text-align: center;
+}
+
+// ── Buscador ──────────────────────────────────────────────────────────
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: .55rem 1rem;
+  margin-bottom: 1.5rem;
+  transition: border-color .15s;
+  &:focus-within { border-color: rgba(240,192,64,.4); }
+}
+
+.search-icon { font-size: .95rem; flex-shrink: 0; }
+
+.search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: $text;
+  font-size: .9rem;
+  &::placeholder { color: $text-muted; }
+}
+
+.btn-clear {
+  background: transparent;
+  border: none;
+  color: $text-muted;
+  font-size: .8rem;
+  cursor: pointer;
+  padding: .5rem .75rem;
+  min-height: 44px;
+  box-sizing: border-box;
+  border-radius: 6px;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { color: $text; background: rgba(255,255,255,.08); }
+  }
+}
+
+// ── Alert / loading / empty ──────────────────────────────────────────
+.alert-error {
+  background: rgba(239,68,68,.1);
+  border: 1px solid rgba(239,68,68,.3);
+  border-left: 3px solid $danger;
+  color: #fca5a5;
+  padding: .75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+  font-size: .9rem;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4rem 0;
+  color: $text-muted;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid rgba(255,255,255,.1);
+  border-top-color: $gold;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: $text-muted;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 14px;
+  span { font-size: 2.5rem; display: block; margin-bottom: 1rem; }
+  h3 { color: $text; margin: 0 0 .5rem; }
+  p { font-size: .9rem; }
+}
+
+// ── Jugador cards ─────────────────────────────────────────────────────
+.jugador-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.jugador-card {
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: border-color .15s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { border-color: rgba(240,192,64,.3); }
+  }
+}
+
+.jcard-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  flex-wrap: wrap;
+  min-height: 44px;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(255,255,255,.03); }
+  }
+}
+
+.jcard-avatar {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: rgba(240,192,64,.1);
+  border: 1px solid rgba(240,192,64,.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.jcard-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.jcard-identity {
+  flex: 1 1 140px;
+  min-width: 0;
+  p { margin: 0; overflow-wrap: break-word; }
+}
+.jcard-nombre    { font-weight: 700; color: $text; font-size: .95rem; }
+.jcard-email     { font-size: .78rem; color: $text-muted; }
+.jcard-telefono  { font-size: .78rem; color: $text-muted; }
+
+.jcard-stats {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.expand-arrow {
+  color: $text-muted;
+  font-size: .75rem;
+  flex-shrink: 0;
+}
+
+// ── Pills ─────────────────────────────────────────────────────────────
+.pill {
+  display: inline-block;
+  padding: .2rem .6rem;
+  border-radius: 20px;
+  font-size: .75rem;
+  font-weight: 600;
+  background: rgba(255,255,255,.06);
+  color: $text-muted;
+  border: 1px solid $border;
+}
+.pill-amber { background: rgba(245,158,11,.12); color: #fbbf24; border-color: rgba(245,158,11,.3); }
+.pill-green { background: rgba(16,185,129,.12); color: #34d399; border-color: rgba(16,185,129,.3); }
+.pill-ok    { background: rgba(16,185,129,.12); color: #34d399; border-color: rgba(16,185,129,.3); }
+.pill-warn  { background: rgba(239,68,68,.1);   color: #f87171; border-color: rgba(239,68,68,.3); }
+.pill-wa    { background: rgba(37,211,102,.12); color: #4ade80; border-color: rgba(37,211,102,.3); }
+.pill-time  { background: rgba(255,255,255,.05); color: $text-muted; }
+
+// ── Pagos expandidos (dentro jugador card) ────────────────────────────
+.jcard-pagos {
+  border-top: 1px solid $border;
+  background: rgba(0,0,0,.15);
+}
+
+.pago-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .5rem;
+  padding: .8rem 1.25rem;
+  min-height: 44px;
+  box-sizing: border-box;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  transition: background .15s;
+
+  &:last-child { border-bottom: none; }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(240,192,64,.05); }
+  }
+}
+
+.pago-row-left {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+
+.pago-num {
+  font-weight: 700;
+  color: $gold;
+  font-size: .85rem;
+  background: rgba(240,192,64,.08);
+  padding: .15rem .45rem;
+  border-radius: 5px;
+  border: 1px solid rgba(240,192,64,.2);
+}
+
+.pago-detail { font-size: .82rem; color: $text-muted; }
+.pago-monto  { font-size: .9rem; font-weight: 700; color: #34d399; }
+.pago-icon   { font-size: .9rem; }
+.pago-icon.warn { opacity: .7; }
+
+.pago-row-right {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.pago-fecha { font-size: .78rem; color: $text-muted; }
+.pago-arrow { color: $text-muted; font-size: .9rem; transition: transform .15s; }
+@media (hover: hover) and (pointer: fine) {
+  .pago-row:hover .pago-arrow { transform: translateX(3px); color: $gold; }
+}
+
+// ── Lista plana (TODOS / APROBADO / RECHAZADO) ─────────────────────────
+.pagos-planos {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.pago-card-flat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: border-color .15s, background .15s;
+  flex-wrap: wrap;
+  gap: .75rem;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { border-color: rgba(240,192,64,.3); background: rgba(255,255,255,.06); }
+  }
+}
+
+.pcf-left {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  min-width: 0;
+}
+
+.pago-num-flat {
+  font-weight: 700;
+  color: $gold;
+  font-size: .9rem;
+  background: rgba(240,192,64,.08);
+  padding: .2rem .55rem;
+  border-radius: 6px;
+  border: 1px solid rgba(240,192,64,.2);
+  flex-shrink: 0;
+}
+
+.pcf-info {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.pcf-user   { font-size: .875rem; font-weight: 600; color: $text; }
+.pcf-detail { font-size: .8rem; color: $text-muted; }
+.pcf-fecha  { font-size: .78rem; color: $text-muted; }
+
+.pcf-right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+.pcf-monto  { font-size: 1rem; font-weight: 700; color: #34d399; }
+.pcf-arrow  { color: $text-muted; font-size: .9rem; transition: transform .15s, color .15s; }
+@media (hover: hover) and (pointer: fine) {
+  .pago-card-flat:hover .pcf-arrow { transform: translateX(3px); color: $gold; }
+}
+
+// ── Estado badges ─────────────────────────────────────────────────────
+.estado-badge {
+  display: inline-block;
+  padding: .25rem .65rem;
+  border-radius: 20px;
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+}
+.estado-pendiente  { background: rgba(245,158,11,.15); color: #fbbf24; border: 1px solid rgba(245,158,11,.35); }
+.estado-aprobado   { background: rgba(16,185,129,.15); color: #34d399; border: 1px solid rgba(16,185,129,.35); }
+.estado-rechazado  { background: rgba(239,68,68,.15);  color: #f87171; border: 1px solid rgba(239,68,68,.35); }
+.estado-vencido    { background: rgba(245,158,11,.15); color: #fbbf24; border: 1px solid rgba(245,158,11,.35); }

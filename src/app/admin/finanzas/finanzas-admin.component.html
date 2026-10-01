@@ -1,0 +1,120 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Finanzas administrativas</h1>
+      <p class="page-sub">Pagos aprobados y premios enviados a ganadores.</p>
+    </div>
+    <button class="btn-refresh" (click)="cargar()"><i class="fa-solid fa-arrows-rotate"></i> Actualizar</button>
+  </div>
+
+  <div class="filter-tabs">
+    <button class="tab" [class.active]="tab === 'pagos'" (click)="tab = 'pagos'">
+      <i class="fa-solid fa-credit-card"></i> Pagos aprobados
+    </button>
+    <button class="tab" [class.active]="tab === 'premios'" (click)="tab = 'premios'">
+      <i class="fa-solid fa-trophy"></i> Premios entregados
+    </button>
+  </div>
+
+  <div class="filters-grid">
+    <div class="search-bar">
+      <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+      <input
+        [(ngModel)]="busqueda"
+        class="search-input"
+        [placeholder]="tab === 'pagos' ? 'Buscar pagos por jugador, ID o quiniela...' : 'Buscar premios por ganador, quiniela o monto...'"
+      >
+      <button *ngIf="busqueda || fechaDesde || fechaHasta" (click)="limpiarFiltros()" class="btn-clear"><i class="fa-solid fa-xmark"></i> Limpiar</button>
+    </div>
+
+    <div class="date-filters">
+      <label>
+        <span>Desde</span>
+        <input type="date" [(ngModel)]="fechaDesde" />
+      </label>
+      <label>
+        <span>Hasta</span>
+        <input type="date" [(ngModel)]="fechaHasta" />
+      </label>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert-error"><i class="fa-solid fa-triangle-exclamation"></i> {{ error }}</div>
+
+  <div *ngIf="cargando" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando movimientos financieros...</p>
+  </div>
+
+  <ng-container *ngIf="!cargando">
+    <div *ngIf="tab === 'pagos'">
+      <div *ngIf="pagosFiltrados.length === 0" class="empty-state">
+        <span><i class="fa-solid fa-credit-card"></i></span>
+        <h3>Sin pagos aprobados</h3>
+        <p>No hay pagos validados en este momento.</p>
+      </div>
+
+      <div class="pagos-planos" *ngIf="pagosFiltrados.length > 0">
+        <article class="pago-card-flat" *ngFor="let pago of pagosFiltrados">
+          <div class="pcf-left">
+            <span class="pago-num-flat">#{{ pago.id }}</span>
+            <div class="pcf-info">
+              <span class="pcf-user"><i class="fa-solid fa-user"></i> {{ pago.nombreCompleto || pago.usuarioUsername }}</span>
+              <span class="pcf-detail">{{ pago.usuarioUsername }} · {{ pago.totalJugadas }} jugada{{ pago.totalJugadas > 1 ? 's' : '' }}</span>
+              <span class="pcf-fecha"><i class="fa-regular fa-clock"></i> {{ formatDate(pago.fechaValidacion || pago.fechaCreacion) }}</span>
+            </div>
+          </div>
+          <div class="pcf-right">
+            <span class="pcf-monto">{{ formatMoney(pago.monto) }}</span>
+            <span class="estado-badge" [ngClass]="getEstadoPagoClass(pago.estado)">{{ pago.estado }}</span>
+            <span class="pcf-meta">{{ getComprobanteLabel(pago) }}</span>
+          </div>
+          <div class="pago-detalle" *ngIf="pago.jugadas.length">
+            <div class="pago-jugada" *ngFor="let jugada of pago.jugadas">
+              <span>{{ jugada.quinielaNombre }}</span>
+              <span>{{ jugada.totalPronosticos }} pronósticos</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-secondary" *ngIf="pago.comprobanteUrl || pago.comprobanteWhatsapp" (click)="verComprobantePago(pago)">
+              <i class="fa-regular fa-eye"></i> Ver comprobante
+            </button>
+            <span class="pcf-fecha-small">Aprobado: {{ formatDate(pago.fechaValidacion || pago.fechaCreacion) }}</span>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div *ngIf="tab === 'premios'">
+      <div *ngIf="premiosFiltrados.length === 0" class="empty-state">
+        <span><i class="fa-solid fa-trophy"></i></span>
+        <h3>Sin premios entregados</h3>
+        <p>No se han registrado entregas de premios en este momento.</p>
+      </div>
+
+      <div class="pagos-planos" *ngIf="premiosFiltrados.length > 0">
+        <article class="pago-card-flat premio-card-flat" *ngFor="let premio of premiosFiltrados">
+          <div class="pcf-left">
+            <span class="pago-num-flat">#{{ premio.ganadorId }}</span>
+            <div class="pcf-info">
+              <span class="pcf-user"><i class="fa-solid fa-trophy"></i> {{ premio.nombreCompleto }}</span>
+              <span class="pcf-detail">{{ premio.nombreQuiniela }} · {{ premio.puntosObtenidos }} puntos</span>
+              <span class="pcf-fecha"><i class="fa-regular fa-clock"></i> {{ formatDate(premio.fechaPagoPremio) }}</span>
+            </div>
+          </div>
+          <div class="pcf-right">
+            <span class="pcf-monto">{{ formatMoney(premio.montoPremio) }}</span>
+            <span class="estado-badge" [ngClass]="getEstadoPremioClass(premio.estadoPremio)">{{ getEstadoPremioLabel(premio.estadoPremio) }}</span>
+            <span class="pcf-meta">{{ premio.pagadoPorUsername || 'Sin asignación' }}</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn-secondary" *ngIf="premio.tieneComprobante" (click)="verComprobantePremio(premio)">
+              <i class="fa-regular fa-eye"></i> Ver comprobante
+            </button>
+            <span class="pcf-fecha-small">Entregado: {{ formatDate(premio.fechaPagoPremio) }}</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </ng-container>
+</div>

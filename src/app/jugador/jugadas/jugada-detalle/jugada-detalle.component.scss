@@ -1,0 +1,1048 @@
+@use 'breakpoints' as bp;
+
+$accent:    #4fc3f7;
+$gold:      #f0c040;
+$text:      #e0e0e0;
+$text-muted:#9b9bc0;
+$border:    rgba(255,255,255,0.08);
+$card-bg:   rgba(255,255,255,0.04);
+$green:     #4caf82;
+
+.page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: $text; padding: 2rem; font-family: 'Segoe UI', sans-serif;
+
+  @include bp.tablet { padding: 1.5rem; }
+  @include bp.mobile  { padding: 1rem 0.85rem; }
+}
+
+.alert-error {
+  background: rgba(220,50,50,0.12); border: 1px solid rgba(220,50,50,0.35);
+  color: #ff7070; padding: 0.8rem 1.2rem; border-radius: 10px; margin-bottom: 1.5rem;
+  &.small { font-size: 0.82rem; padding: 0.5rem 0.9rem; margin: 0.5rem 0; }
+}
+
+.loading-state {
+  display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 4rem; color: $text-muted;
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: $accent; border-radius: 50%; animation: spin 0.8s linear infinite; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Header jugada ───────────────────────────────────────────────
+.jugada-header {
+  display: flex; gap: 2rem; justify-content: space-between; flex-wrap: wrap;
+  background: $card-bg; border: 1px solid $border; border-radius: 18px;
+  padding: 1.5rem; margin-bottom: 1.5rem;
+
+  @include bp.mobile { flex-direction: column; gap: 1.25rem; padding: 1.1rem; }
+}
+
+.header-left {
+  flex: 1; min-width: 0;
+  .back-link {
+    font-size: 0.82rem; color: $text-muted; text-decoration: none;
+    @media (hover: hover) and (pointer: fine) { &:hover { color: $accent; } }
+  }
+  .titulo-row { display: flex; align-items: center; gap: 0.75rem; row-gap: 0.4rem; flex-wrap: wrap; margin: 0.5rem 0; }
+  h1 { margin: 0; font-size: 1.45rem; }
+  .quiniela-nombre { margin: 0; color: $text-muted; font-size: 0.88rem; }
+}
+
+.header-right {
+  flex-shrink: 0; display: flex; flex-direction: column; gap: 1rem; align-items: flex-end;
+  @include bp.tablet-up { padding-left: 1.5rem; border-left: 1px solid $border; }
+}
+
+.meta-grid { display: grid; grid-template-columns: repeat(2, minmax(120px, auto)); gap: 0.6rem; }
+.meta-item {
+  display: flex; flex-direction: column; gap: 0.15rem; align-items: flex-end;
+  padding: 0.4rem 0.7rem;
+  background: rgba(255,255,255,0.03); border: 1px solid $border; border-radius: 8px;
+
+  &:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+.meta-label { font-size: 0.68rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.03em; }
+.meta-val { font-size: 0.95rem; font-weight: 700; &.gold { color: $gold; } }
+
+// Pago
+.pago-section { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; }
+.pago-aviso { margin: 0; font-size: 0.8rem; color: #ffb74d; text-align: right; max-width: 260px; }
+.btn-whatsapp {
+  background: #25d366; color: #fff; font-weight: 700;
+  padding: 0.55rem 1.2rem; border-radius: 10px; text-decoration: none;
+  font-size: 0.88rem; transition: opacity 0.2s; white-space: nowrap;
+  min-height: 44px; display: inline-flex; align-items: center;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { opacity: 0.88; }
+  }
+}
+
+// ── Barra de progreso ──────────────────────────────────────────
+.progreso-bar-wrap {
+  margin-bottom: 1.5rem;
+}
+.progreso-label {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.8rem; color: $text-muted; margin-bottom: 0.4rem;
+}
+.progreso-bar {
+  width: 100%; height: 6px; background: rgba(255,255,255,0.08);
+  border-radius: 10px; overflow: hidden;
+}
+.progreso-fill {
+  height: 100%; background: linear-gradient(90deg, $accent, $green);
+  border-radius: 10px; transition: width 0.4s ease;
+}
+
+// ── Aviso CREADA ──────────────────────────────────────────────
+.aviso-creada {
+  background: rgba(79,195,247,0.08); border: 1px solid rgba(79,195,247,0.2);
+  color: $accent; border-radius: 10px; padding: 0.75rem 1rem;
+  font-size: 0.82rem; margin-bottom: 1.5rem;
+}
+
+// ── Eliminar jugada ────────────────────────────────────────────
+.eliminar-section { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; }
+
+.btn-eliminar {
+  background: transparent; border: 1px solid rgba(220,50,50,0.35); color: #ff7070;
+  padding: 0.4rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.82rem; min-height: 44px;
+  display: inline-flex; align-items: center;
+  transition: all 0.2s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(220,50,50,0.1); }
+  }
+}
+
+.confirmar-eliminar {
+  display: flex; flex-direction: column; gap: 0.4rem; align-items: flex-end;
+  background: rgba(220,50,50,0.1); border: 1px solid rgba(220,50,50,0.25);
+  border-radius: 10px; padding: 0.75rem;
+  > span { font-size: 0.8rem; color: #ff7070; }
+}
+.confirmar-btns { display: flex; gap: 0.6rem; }
+
+.btn-cancel-sm {
+  background: transparent; border: 1px solid $border; color: $text-muted;
+  padding: 0.5rem 0.9rem; border-radius: 7px; cursor: pointer; font-size: 0.85rem; min-height: 40px;
+}
+.btn-delete-sm {
+  background: rgba(220,50,50,0.2); border: 1px solid rgba(220,50,50,0.4); color: #ff7070;
+  padding: 0.5rem 0.9rem; border-radius: 7px; cursor: pointer; font-size: 0.85rem; font-weight: 600; min-height: 40px;
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) { background: rgba(220,50,50,0.3); }
+  }
+}
+
+// ── Botón editar pronóstico ────────────────────────────────────
+.btn-editar-pr {
+  margin-left: auto; background: transparent; border: 1px solid rgba(79,195,247,0.3);
+  color: $accent; padding: 0.5rem 0.85rem; border-radius: 7px; cursor: pointer; min-height: 40px;
+  font-size: 0.78rem; transition: all 0.2s; white-space: nowrap;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(79,195,247,0.12); }
+  }
+  &.active { background: rgba(79,195,247,0.12); }
+}
+
+.form-modo-label {
+  font-size: 0.78rem; font-weight: 600; color: $accent;
+  margin-bottom: 0.5rem; padding-bottom: 0.5rem;
+  border-bottom: 1px solid $border;
+}
+
+// Badges estado
+.estado-badge {
+  padding: 0.2rem 0.75rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700;
+}
+.estado-creada    { background: rgba(79,195,247,0.15); color: $accent; }
+.estado-pendiente { background: rgba(255,183,77,0.15); color: #ffb74d; }
+.estado-activa    { background: rgba(76,175,130,0.15); color: $green; }
+.estado-rechazada { background: rgba(220,50,50,0.15);  color: #ff7070; }
+.estado-expirada  { background: rgba(158,158,158,0.12); color: #9e9e9e; }
+.estado-finalizada{ background: rgba(240,192,64,0.15); color: $gold; }
+
+.detalle-ganadora-badge {
+  font-size: .72rem; font-weight: 700; color: $gold;
+  background: rgba(240,192,64,.18); border: 1px solid rgba(240,192,64,.4);
+  padding: .25rem .7rem; border-radius: 20px; white-space: nowrap;
+}
+
+// ── Sección partidos ────────────────────────────────────────────
+.section-header {
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem;
+  h2 { margin: 0; font-size: 1.1rem; flex: 1; }
+}
+.info-note { font-size: 0.8rem; color: $text-muted; }
+.no-partidos { color: $text-muted; font-size: 0.88rem; padding: 1rem 0; }
+
+.partidos-list { display: flex; flex-direction: column; gap: 1rem; }
+
+.partido-card {
+  background: $card-bg; border: 1px solid $border; border-radius: 14px; padding: 1.2rem;
+  transition: border-color 0.2s;
+  &.partido-completo { border-color: rgba(76,175,130,0.3); }
+}
+
+.partido-num { font-size: 0.72rem; color: $text-muted; margin-bottom: 0.4rem; }
+
+.partido-header {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.partido-vs { display: flex; align-items: center; gap: 0.75rem; }
+.equipo-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; }
+.equipo { font-weight: 600; font-size: 0.95rem; }
+.equipo-rol { font-size: 0.68rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.04em; }
+.vs { font-size: 0.78rem; color: $text-muted; }
+
+.partido-meta { display: flex; align-items: center; gap: 0.6rem; }
+.p-fecha { font-size: 0.78rem; color: $text-muted; }
+.p-badge {
+  font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.6rem; border-radius: 20px;
+  background: rgba(255,255,255,0.07); color: $text-muted;
+  &.finalizado { background: rgba(240,192,64,0.12); color: $gold; }
+  &.en-juego   { background: rgba(79,195,247,0.12); color: $accent; }
+}
+
+.partido-descripcion {
+  font-size: 0.82rem; color: $text-muted; margin: -0.25rem 0 0.75rem;
+  font-style: italic; line-height: 1.4;
+}
+
+// ── Pronóstico registrado (1 por partido) ──────────────────────
+.pronostico-registrado {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: rgba(76,175,130,0.08); border: 1px solid rgba(76,175,130,0.2);
+  border-radius: 10px; padding: 0.6rem 0.9rem; margin-bottom: 0.5rem;
+}
+.pr-checkmark { color: $green; font-size: 1rem; flex-shrink: 0; }
+.pr-info { display: flex; gap: 0.5rem; align-items: center; flex: 1; flex-wrap: wrap; }
+.tipo-label  { color: $text-muted; font-size: 0.78rem; }
+.opcion-val  { color: $green; font-weight: 600; font-size: 0.88rem; }
+.puntos-chip { color: $gold; font-size: 0.75rem; font-weight: 700; margin-left: auto; }
+
+.sin-pronostico-warn { font-size: 0.8rem; color: #ff7070; margin: 0.25rem 0 0; }
+
+// ── Formulario pronóstico ───────────────────────────────────────
+.pronostico-action { margin-top: 0.5rem; }
+.pronostico-form { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 1rem; }
+
+.form-step { margin-bottom: 1rem; }
+.form-label { font-size: 0.78rem; color: $text-muted; font-weight: 600; margin-bottom: 0.5rem; }
+.form-hint  { font-size: 0.82rem; color: $text-muted; margin: 0.25rem 0; }
+
+.tipo-grid  { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.opcion-grid{ display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.4rem; }
+
+.btn-tipo {
+  background: rgba(255,255,255,0.05); border: 1px solid $border;
+  color: $text; padding: 0.6rem 1rem; border-radius: 8px; cursor: pointer; min-height: 44px;
+  font-size: 0.83rem; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  strong { font-weight: 600; }
+  small  { color: $text-muted; font-size: 0.72rem; margin-top: 0.1rem; }
+  &.selected { background: rgba(79,195,247,0.15); border-color: rgba(79,195,247,0.5); color: $accent;
+    small { color: $accent; } }
+  &:hover:not(.selected) { background: rgba(79,195,247,0.07); border-color: rgba(79,195,247,0.25); }
+}
+
+.btn-opcion {
+  background: rgba(255,255,255,0.05); border: 1px solid $border;
+  color: $text; padding: 0.6rem 1rem; border-radius: 8px; cursor: pointer; min-height: 44px;
+  font-size: 0.83rem; transition: all 0.2s;
+  &.selected { background: rgba(76,175,130,0.15); border-color: rgba(76,175,130,0.5); color: $green; }
+  &:hover:not(.selected) { background: rgba(76,175,130,0.07); }
+}
+
+.form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
+
+.btn-cancel {
+  background: transparent; border: 1px solid $border; color: $text-muted;
+  padding: 0.45rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; min-height: 44px;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { color: $text; }
+  }
+}
+
+.btn-save {
+  background: rgba(76,175,130,0.15); border: 1px solid rgba(76,175,130,0.35);
+  color: $green; padding: 0.45rem 1.1rem; border-radius: 8px; min-height: 44px;
+  cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s;
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) { background: rgba(76,175,130,0.25); }
+  }
+}
+
+.btn-add-pronostico {
+  background: transparent; border: 1px dashed rgba(79,195,247,0.35);
+  color: $accent; padding: 0.4rem 0.9rem; border-radius: 8px; min-height: 44px;
+  cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(79,195,247,0.08); }
+  }
+}
+
+// ── Acciones rápidas (después del partido 8) ───────────────────
+.acciones-bottom {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $border;
+}
+
+.acciones-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.btn-nueva-jugada {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: linear-gradient(135deg, rgba(79,195,247,0.15), rgba(99,102,241,0.15));
+  border: 1px solid rgba(79,195,247,0.35);
+  color: $accent; padding: 0.7rem 1.4rem; border-radius: 12px;
+  cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s;
+  &:hover:not(:disabled) { background: linear-gradient(135deg, rgba(79,195,247,0.25), rgba(99,102,241,0.25)); transform: translateY(-1px); }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+.btn-ir-pagar {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: linear-gradient(135deg, rgba(240,192,64,0.18), rgba(255,165,0,0.12));
+  border: 1px solid rgba(240,192,64,0.4);
+  color: $gold; padding: 0.7rem 1.4rem; border-radius: 12px;
+  text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: all 0.2s;
+  &:hover { background: linear-gradient(135deg, rgba(240,192,64,0.28), rgba(255,165,0,0.22)); transform: translateY(-1px); }
+}
+
+.btn-spinner {
+  display: inline-block; width: 13px; height: 13px;
+  border: 2px solid rgba(79,195,247,0.2); border-top-color: $accent;
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+}
+
+
+.page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: $text; padding: 2rem; font-family: 'Segoe UI', sans-serif;
+
+  @include bp.tablet { padding: 1.5rem; }
+  @include bp.mobile  { padding: 1rem 0.85rem; }
+}
+
+.alert-error {
+  background: rgba(220,50,50,0.12); border: 1px solid rgba(220,50,50,0.35);
+  color: #ff7070; padding: 0.8rem 1.2rem; border-radius: 10px; margin-bottom: 1.5rem;
+  &.small { font-size: 0.82rem; padding: 0.5rem 0.9rem; margin: 0.5rem 0; }
+}
+
+.loading-state {
+  display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 4rem; color: $text-muted;
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: $accent; border-radius: 50%; animation: spin 0.8s linear infinite; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Header jugada ───────────────────────────────────────────────
+.jugada-header {
+  display: flex; gap: 2rem; justify-content: space-between; flex-wrap: wrap;
+  background: $card-bg; border: 1px solid $border; border-radius: 18px;
+  padding: 1.5rem; margin-bottom: 2rem;
+
+  @include bp.mobile { flex-direction: column; gap: 1.25rem; padding: 1.1rem; }
+}
+
+.header-left {
+  flex: 1; min-width: 0;
+  .back-link {
+    font-size: 0.82rem; color: $text-muted; text-decoration: none;
+    @media (hover: hover) and (pointer: fine) { &:hover { color: $accent; } }
+  }
+  .titulo-row { display: flex; align-items: center; gap: 0.75rem; row-gap: 0.4rem; flex-wrap: wrap; margin: 0.5rem 0; }
+  h1 { margin: 0; font-size: 1.45rem; }
+  .quiniela-nombre { margin: 0; color: $text-muted; font-size: 0.88rem; }
+}
+
+.header-right {
+  flex-shrink: 0; display: flex; flex-direction: column; gap: 1rem; align-items: flex-end;
+  @include bp.tablet-up { padding-left: 1.5rem; border-left: 1px solid $border; }
+}
+
+.meta-grid { display: grid; grid-template-columns: repeat(2, minmax(120px, auto)); gap: 0.6rem; }
+.meta-item {
+  display: flex; flex-direction: column; gap: 0.15rem; align-items: flex-end;
+  padding: 0.4rem 0.7rem;
+  background: rgba(255,255,255,0.03); border: 1px solid $border; border-radius: 8px;
+
+  &:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+.meta-label { font-size: 0.68rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.03em; }
+.meta-val { font-size: 0.95rem; font-weight: 700; &.gold { color: $gold; } }
+
+// Pago
+.pago-section { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; }
+.pago-aviso { margin: 0; font-size: 0.8rem; color: #ffb74d; text-align: right; max-width: 260px; }
+.btn-whatsapp {
+  background: #25d366; color: #fff; font-weight: 700;
+  padding: 0.55rem 1.2rem; border-radius: 10px; text-decoration: none;
+  font-size: 0.88rem; transition: opacity 0.2s; white-space: nowrap;
+  min-height: 44px; display: inline-flex; align-items: center;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { opacity: 0.88; }
+  }
+}
+
+// Badges estado
+.estado-badge {
+  padding: 0.2rem 0.75rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700;
+}
+.estado-pendiente { background: rgba(255,183,77,0.15); color: #ffb74d; }
+.estado-activa    { background: rgba(76,175,130,0.15); color: #4caf82; }
+.estado-rechazada { background: rgba(220,50,50,0.15);  color: #ff7070; }
+.estado-expirada  { background: rgba(158,158,158,0.12); color: #9e9e9e; }
+.estado-finalizada{ background: rgba(240,192,64,0.15); color: $gold; }
+
+// ── Sección partidos ────────────────────────────────────────────
+.section-header {
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem;
+  h2 { margin: 0; font-size: 1.1rem; flex: 1; }
+}
+.info-note { font-size: 0.8rem; color: $text-muted; }
+.no-partidos { color: $text-muted; font-size: 0.88rem; padding: 1rem 0; }
+
+.partidos-list { display: flex; flex-direction: column; gap: 1rem; }
+
+.partido-card {
+  background: $card-bg; border: 1px solid $border; border-radius: 14px; padding: 1.2rem;
+}
+
+.partido-header {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.partido-vs { display: flex; align-items: center; gap: 0.75rem; }
+.equipo-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; }
+.equipo { font-weight: 600; font-size: 0.95rem; }
+.equipo-rol { font-size: 0.68rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.04em; }
+.vs { font-size: 0.78rem; color: $text-muted; }
+.marcador-vs {
+  font-size: 1rem; font-weight: 800; color: $gold;
+  background: rgba(240,192,64,0.1); border-radius: 8px;
+  padding: .15rem .65rem; white-space: nowrap;
+}
+
+.partido-meta { display: flex; align-items: center; gap: 0.6rem; }
+.p-fecha { font-size: 0.78rem; color: $text-muted; }
+.p-badge {
+  font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.6rem; border-radius: 20px;
+  background: rgba(255,255,255,0.07); color: $text-muted;
+  &.finalizado { background: rgba(240,192,64,0.12); color: $gold; }
+  &.en-juego   { background: rgba(79,195,247,0.12);  color: $accent; }
+}
+
+.partido-descripcion {
+  font-size: 0.82rem; color: $text-muted; margin: -0.25rem 0 0.75rem;
+  font-style: italic; line-height: 1.4;
+}
+
+// ── Pronósticos registrados ─────────────────────────────────────
+.pronosticos-registrados { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+
+.pronostico-chip {
+  display: flex; gap: 0.4rem; align-items: center;
+  background: rgba(76,175,130,0.1); border: 1px solid rgba(76,175,130,0.2);
+  border-radius: 8px; padding: 0.3rem 0.75rem; font-size: 0.82rem;
+}
+.tipo-label   { color: $text-muted; font-size: 0.75rem; }
+.opcion-val   { color: #4caf82; font-weight: 600; }
+.puntos-chip  { color: $gold; font-size: 0.75rem; font-weight: 700; }
+
+// ── Formulario pronóstico ───────────────────────────────────────
+.pronostico-action { margin-top: 0.5rem; }
+.pronostico-form { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 1rem; }
+
+.form-label { font-size: 0.78rem; color: $text-muted; font-weight: 600; margin-bottom: 0.5rem; }
+.form-hint  { font-size: 0.82rem; color: $text-muted; margin: 0.25rem 0; }
+
+.tipo-grid  { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.opcion-grid{ display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.5rem; }
+
+.btn-tipo {
+  background: rgba(255,255,255,0.05); border: 1px solid $border;
+  color: $text; padding: 0.6rem 1rem; border-radius: 8px; cursor: pointer; min-height: 44px;
+  font-size: 0.83rem; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  strong { font-weight: 600; }
+  small  { color: $text-muted; font-size: 0.72rem; margin-top: 0.1rem; }
+  &.selected, &:hover { background: rgba(79,195,247,0.12); border-color: rgba(79,195,247,0.4); color: $accent; }
+}
+
+.btn-opcion {
+  background: rgba(255,255,255,0.05); border: 1px solid $border;
+  color: $text; padding: 0.6rem 1rem; border-radius: 8px; cursor: pointer; min-height: 44px;
+  font-size: 0.83rem; transition: all 0.2s;
+  &.selected, &:hover { background: rgba(76,175,130,0.12); border-color: rgba(76,175,130,0.4); color: #4caf82; }
+}
+
+.form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
+
+.btn-cancel {
+  background: transparent; border: 1px solid $border; color: $text-muted;
+  padding: 0.45rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; min-height: 44px;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { color: $text; }
+  }
+}
+
+.btn-save {
+  background: rgba(76,175,130,0.15); border: 1px solid rgba(76,175,130,0.35);
+  color: #4caf82; padding: 0.45rem 1.1rem; border-radius: 8px; min-height: 44px;
+  cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s;
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) { background: rgba(76,175,130,0.25); }
+  }
+}
+
+.btn-add-pronostico {
+  background: transparent; border: 1px dashed rgba(79,195,247,0.35);
+  color: $accent; padding: 0.4rem 0.9rem; border-radius: 8px; min-height: 44px;
+  cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(79,195,247,0.08); }
+  }
+}
+
+// -- Banner EN JUEGO ---------------------------------------------------------
+
+.banner-en-juego {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: linear-gradient(135deg, rgba(79,195,247,.08), rgba(240,192,64,.06));
+  border: 1px solid rgba(79,195,247,.25);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.banner-en-juego-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  strong { font-size: .95rem; color: $accent; display: block; margin-bottom: .2rem; }
+  p { margin: 0; font-size: .8rem; color: $text-muted; max-width: 340px; }
+}
+
+.banner-en-juego-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.evaluacion-chip {
+  display: flex;
+  align-items: baseline;
+  gap: .2rem;
+  background: rgba(255,255,255,.06);
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: .3rem .7rem;
+  .eval-num   { font-size: 1.2rem; font-weight: 700; color: $accent; }
+  .eval-sep   { color: $text-muted; }
+  .eval-total { font-size: 1rem; font-weight: 600; color: $text; }
+  .eval-label { font-size: .72rem; color: $text-muted; margin-left: .3rem; }
+}
+
+.puntos-chip-ej {
+  background: rgba(240,192,64,.1);
+  border: 1px solid rgba(240,192,64,.25);
+  border-radius: 8px;
+  padding: .3rem .7rem;
+  font-size: .85rem;
+  color: $gold;
+  strong { font-size: 1rem; }
+  span   { font-size: .75rem; color: $text-muted; margin-left: .2rem; }
+}
+
+.btn-refresh-ej {
+  background: rgba(255,255,255,.06);
+  border: 1px solid $border;
+  color: $text-muted;
+  border-radius: 8px;
+  padding: .5rem .8rem;
+  font-size: .8rem;
+  min-height: 40px;
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { color: $accent; border-color: $accent; }
+  }
+  .refresh-hint { font-size: .72rem; color: $text-muted; margin-left: .25rem; }
+}
+
+.btn-ranking-ej {
+  background: rgba(240,192,64,.1);
+  border: 1px solid rgba(240,192,64,.3);
+  color: $gold;
+  border-radius: 8px;
+  padding: .5rem .8rem;
+  font-size: .8rem;
+  min-height: 40px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(240,192,64,.18); border-color: $gold; }
+  }
+}
+
+// Dot pulsante
+.pulse-dot {
+  flex-shrink: 0;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: $accent;
+  margin-top: 3px;
+  animation: pulse-glow 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(79,195,247,.6); opacity: 1; }
+  50%       { box-shadow: 0 0 0 6px rgba(79,195,247,.0); opacity: .7; }
+}
+
+// -- Vista EN_JUEGO � lista de partidos --------------------------------------
+
+.partidos-en-juego {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+
+.partido-ej {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: .75rem;
+  flex-wrap: wrap;          /* allow inline form to break to next row */
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 12px;
+  padding: .85rem 1rem;
+  transition: border-color .2s;
+
+  &.p-estado-finalizado { border-left: 3px solid #4caf82; }
+  &.p-estado-en-juego   { border-left: 3px solid $accent; background: rgba(79,195,247,.04); }
+  &.p-estado-pendiente  { border-left: 3px solid rgba(255,255,255,.15); opacity: .8; }
+}
+
+// Estado col
+.pej-estado-col { display: flex; justify-content: center; }
+
+.pej-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .8rem; font-weight: 700;
+}
+.pej-dot-fin  { background: rgba(76,175,130,.2); color: #4caf82; }
+.pej-dot-pend { background: rgba(255,255,255,.06); color: $text-muted; font-size: .9rem; }
+.pej-dot-live {
+  background: rgba(79,195,247,.2);
+  animation: pulse-glow 1.4s ease-in-out infinite;
+  &::after {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: $accent;
+  }
+}
+
+// Info partido
+.pej-info { display: flex; flex-direction: column; gap: .25rem; min-width: 0; }
+
+.pej-equipos {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .9rem;
+  font-weight: 600;
+  color: $text;
+  flex-wrap: wrap;
+}
+.pej-vs { font-size: .75rem; color: $text-muted; font-weight: 400; }
+.pej-marcador-inline {
+  font-size: .9rem; font-weight: 800; color: $gold;
+  background: rgba(240,192,64,.1); border-radius: 6px;
+  padding: .1rem .5rem; white-space: nowrap;
+}
+
+.pej-meta {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex-wrap: wrap;
+}
+
+.pej-estado-label {
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .1rem .5rem;
+  border-radius: 20px;
+  &.p-estado-finalizado { background: rgba(76,175,130,.15); color: #4caf82; }
+  &.p-estado-en-juego   { background: rgba(79,195,247,.15); color: $accent; animation: blink-text 2s ease-in-out infinite; }
+  &.p-estado-pendiente  { background: rgba(255,255,255,.06); color: $text-muted; }
+}
+
+@keyframes blink-text {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .55; }
+}
+
+.pej-fecha { font-size: .72rem; color: $text-muted; }
+
+.pej-resultado { margin-top: .15rem; }
+.pej-marcador {
+  font-size: .85rem;
+  font-weight: 700;
+  color: $gold;
+  background: rgba(240,192,64,.08);
+  border-radius: 6px;
+  padding: .1rem .5rem;
+}
+
+.pej-en-curso-hint {
+  font-size: .72rem;
+  color: $text-muted;
+  font-style: italic;
+  margin-top: .1rem;
+}
+
+// Pron�stico
+.pej-pronostico {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .2rem;
+  min-width: 120px;
+  text-align: right;
+}
+
+.pej-pr-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: .2rem; }
+.pej-pr-tipo  { font-size: .7rem; color: $text-muted; }
+.pej-pr-opcion { font-size: .82rem; font-weight: 600; color: $text; }
+
+.pej-puntos {
+  font-size: .78rem;
+  font-weight: 700;
+  padding: .15rem .45rem;
+  border-radius: 6px;
+}
+.pej-puntos-ok { background: rgba(76,175,130,.15); color: #4caf82; }
+.pej-puntos-ko { background: rgba(220,50,50,.1);   color: #ff7070; }
+
+.pej-sin-pr { font-size: .75rem; color: rgba(255,255,255,.25); font-style: italic; }
+
+// Inline form inside EN_JUEGO card (PENDIENTE partidos)
+.pej-form-inline {
+  grid-column: 1 / -1;   /* span all 3 grid columns */
+  width: 100%;
+  margin-top: .25rem;
+  padding-top: .85rem;
+  border-top: 1px solid $border;
+}
+
+.btn-add-pej {
+  font-size: .78rem;
+  padding: .3rem .75rem;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+// Pie de p�gina hint
+.ej-footer-hint {
+  font-size: .78rem;
+  color: $text-muted;
+  text-align: center;
+  margin: 1rem 0 .5rem;
+  padding: .6rem 1rem;
+  background: rgba(255,255,255,.03);
+  border-radius: 8px;
+  border: 1px dashed rgba(255,255,255,.08);
+}
+// ── Detalle resultado EN_JUEGO view ───────────────────────────────
+.pej-resultado-detalle {
+  display: flex; flex-wrap: wrap; gap: .4rem;
+  margin-top: .2rem;
+}
+.pej-det-item {
+  font-size: .7rem; color: $text-muted;
+  background: rgba(255,255,255,.05);
+  border-radius: 4px; padding: .1rem .4rem;
+}
+
+// ── Detalle resultado vista normal (CREADA / PENDIENTE) ────────────
+.resultado-card-detalle {
+  display: flex; flex-wrap: wrap; gap: .5rem; align-items: center;
+  margin: -.35rem 0 .6rem;
+  padding: .35rem .6rem;
+  background: rgba(240,192,64,.05);
+  border-left: 3px solid rgba(240,192,64,.3);
+  border-radius: 0 6px 6px 0;
+}
+.rcd-item {
+  font-size: .75rem; color: $text-muted;
+  &:first-child { font-weight: 600; color: $gold; }
+}
+
+// ── Pantalla FINALIZADA ─────────────────────────────────────────────
+
+// Hero card
+.rh-hero {
+  background: linear-gradient(135deg, rgba(240,192,64,.09) 0%, rgba(99,102,241,.07) 100%);
+  border: 1px solid rgba(240,192,64,.28);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.rh-top {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: .5rem;
+}
+.rh-badge {
+  font-size: .78rem; font-weight: 700; letter-spacing: .05em;
+  padding: .3rem .75rem; border-radius: 20px;
+  background: rgba(240,192,64,.18); border: 1px solid rgba(240,192,64,.35);
+  color: $gold; white-space: nowrap;
+}
+.rh-criterio-chip {
+  font-size: .75rem; color: $text-muted;
+  background: rgba(255,255,255,.05); border: 1px solid $border;
+  padding: .25rem .7rem; border-radius: 20px;
+}
+
+// Stat cards
+.rh-stats {
+  display: flex; gap: .75rem; flex-wrap: wrap;
+}
+.rh-stat {
+  flex: 1; min-width: 7rem;
+  display: flex; flex-direction: column; gap: .2rem; position: relative;
+  background: rgba(255,255,255,.04); border: 1px solid $border;
+  border-radius: 12px; padding: .9rem 1rem;
+}
+.rh-stat-pos { border-color: rgba(99,102,241,.3); background: rgba(99,102,241,.07); }
+.rh-stat-ganador {
+  border-color: rgba(240,192,64,.4);
+  background: rgba(240,192,64,.10);
+  .rh-stat-num { color: $gold; }
+}
+.rh-stat-num {
+  font-size: 2rem; font-weight: 700; color: $gold; line-height: 1;
+}
+.rh-stat-lbl {
+  font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: $text-muted;
+}
+.rh-self-ganador-badge {
+  position: absolute; top: .45rem; right: .55rem;
+  font-size: .62rem; font-weight: 700; color: $gold;
+  background: rgba(240,192,64,.2); border: 1px solid rgba(240,192,64,.4);
+  padding: .1rem .45rem; border-radius: 10px;
+}
+
+// Winners block
+.rh-ganadores {
+  display: flex; flex-direction: column; gap: .55rem;
+}
+.rh-ganadores-titulo {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; color: $text-muted;
+}
+.rh-ganadores-list { display: flex; flex-wrap: wrap; gap: .45rem; }
+.rh-ganador-chip {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .45rem 1rem; border-radius: 30px;
+  background: rgba(240,192,64,.12); border: 1px solid rgba(240,192,64,.35);
+}
+.rh-ganador-chip-yo {
+  background: rgba(240,192,64,.2); border-color: $gold;
+}
+.rh-ganador-nombre { font-weight: 700; font-size: .9rem; color: $gold; }
+.rh-ganador-pts    { font-size: .78rem; color: $text-muted; }
+.rh-tu-chip {
+  font-size: .62rem; font-weight: 700; color: #fff;
+  background: $accent; padding: .1rem .4rem; border-radius: 8px;
+}
+
+// Loading inside hero
+.rh-loading {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: .82rem; color: $text-muted;
+}
+.spinner-sm {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.15);
+  border-top-color: $gold;
+  animation: spin .7s linear infinite;
+}
+
+// Definitivo seal
+.rh-definitivo {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: .8rem; color: $text-muted;
+  border-top: 1px solid rgba(255,255,255,.06);
+  padding-top: .85rem;
+}
+
+// ── Ranking completo ─────────────────────────────────────────────────
+.rk-section {
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.rk-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; padding: 1rem 1.25rem;
+  border-bottom: 1px solid $border; flex-wrap: wrap;
+}
+.rk-title { font-weight: 700; font-size: .9rem; color: $text; }
+.rk-busqueda {
+  background: rgba(255,255,255,.06); border: 1px solid $border;
+  border-radius: 8px; padding: .4rem .85rem;
+  color: $text; font-size: .82rem; width: 100%; max-width: 220px; outline: none;
+  transition: border-color .15s;
+  &::placeholder { color: $text-muted; }
+  &:focus { border-color: $accent; }
+}
+.rk-ir-mia {
+  width: 100%; padding: .55rem 1.25rem;
+  background: rgba(99,102,241,.08); border: none;
+  border-bottom: 1px solid rgba(99,102,241,.18);
+  color: $accent; font-size: .82rem; text-align: left;
+  cursor: pointer; transition: background .12s;
+  &:hover { background: rgba(99,102,241,.14); }
+}
+.rk-table { display: flex; flex-direction: column; }
+.rk-thead {
+  display: grid; grid-template-columns: 2.5rem 1fr 3.5rem 5.5rem;
+  padding: .4rem 1.25rem;
+  font-size: .75rem; text-transform: uppercase;
+  letter-spacing: .06em; color: $text-muted;
+  border-bottom: 1px solid $border;
+}
+.rk-row {
+  display: grid; grid-template-columns: 2.5rem 1fr 3.5rem 5.5rem;
+  padding: .6rem 1.25rem; font-size: .875rem;
+  border-bottom: 1px solid rgba(255,255,255,.09);
+  transition: background .12s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(255,255,255,.03); }
+  }
+  &:last-child { border-bottom: none; }
+}
+.rk-row-ganador {
+  border-left: 3px solid rgba(240,192,64,.5);
+  padding-left: calc(1.25rem - 3px);
+  background: rgba(240,192,64,.1);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(240,192,64,.16); }
+  }
+}
+.rk-row-yo {
+  border-left: 3px solid rgba(99,102,241,.6);
+  padding-left: calc(1.25rem - 3px);
+  background: rgba(99,102,241,.14);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(99,102,241,.2); }
+  }
+}
+.rk-row-ganador-yo {
+  border-left: 3px solid $gold;
+  padding-left: calc(1.25rem - 3px);
+  background: rgba(240,192,64,.18);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(240,192,64,.24); }
+  }
+}
+.rk-c-pos    { font-weight: 700; color: $text-muted; text-align: center; }
+.rk-c-nombre { color: $text; display: flex; align-items: center; gap: .4rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.rk-trofeo-icon { flex-shrink: 0; }
+.rk-c-pts    { font-weight: 700; color: $gold; text-align: right; padding-right: .5rem; }
+.rk-c-est    { text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: .4rem; }
+.rk-row-clickable { cursor: pointer; }
+.rk-expand-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(255,255,255,.06); color: $accent; font-size: .7rem;
+  transition: transform .15s;
+  &.abierto { transform: rotate(-180deg); }
+}
+
+@include bp.mobile {
+  .rk-thead, .rk-row { grid-template-columns: 2rem 1fr 3rem 2.6rem; }
+}
+
+.rk-detalle {
+  padding: .6rem 1.25rem .85rem calc(1.25rem + 2.5rem);
+  background: rgba(255,255,255,.02);
+  border-bottom: 1px solid rgba(255,255,255,.032);
+  display: flex; flex-direction: column; gap: .4rem;
+
+  @include bp.mobile { padding-left: 1rem; }
+}
+.rk-detalle-item {
+  display: flex; flex-direction: column; gap: .3rem;
+  font-size: .78rem; color: $text-muted;
+}
+.rk-detalle-partido { color: $text; font-weight: 600; }
+.rk-detalle-linea2 {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .75rem; flex-wrap: wrap;
+}
+.rk-detalle-pronostico { flex: 1 1 auto; }
+.rk-detalle-pts {
+  flex-shrink: 0; font-weight: 700; color: $text-muted;
+  &.acerto { color: $gold; }
+}
+.rk-detalle-empty {
+  font-size: .78rem; color: $text-muted; font-style: italic;
+}
+.rk-tu-badge {
+  flex-shrink: 0;
+  font-size: .65rem; font-weight: 700; color: #fff;
+  background: $accent; padding: .1rem .4rem; border-radius: 8px;
+}
+.rk-empty {
+  padding: 1.5rem; font-size: .85rem;
+  color: $text-muted; text-align: center;
+}
+.rk-paginacion {
+  display: flex; align-items: center; justify-content: center;
+  gap: .75rem; padding: .85rem 1.25rem;
+  border-top: 1px solid $border;
+}
+.rk-btn-pag {
+  background: rgba(255,255,255,.06); border: 1px solid $border;
+  border-radius: 8px; color: $text; padding: .5rem .9rem; min-height: 40px;
+  cursor: pointer; font-size: .82rem; transition: background .12s;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) { background: rgba(255,255,255,.11); }
+  }
+  &:disabled { opacity: .35; cursor: not-allowed; }
+}
+.rk-pag-info {
+  font-size: .82rem; color: $text-muted; min-width: 5rem; text-align: center;
+}

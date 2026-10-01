@@ -1,0 +1,238 @@
+<div class="page">
+
+  <!-- Back -->
+  <a routerLink="/admin/pagos" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Volver a Pagos</a>
+
+  <!-- Loading -->
+  <div *ngIf="cargando" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando pago...</p>
+  </div>
+
+  <!-- Error inicial -->
+  <div *ngIf="error && !cargando" class="alert-error"><i class="fa-solid fa-triangle-exclamation"></i> {{ error }}</div>
+
+  <ng-container *ngIf="pago && !cargando">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1>Pago <span class="pago-id-title">#{{ pago.id }}</span></h1>
+        <div class="header-badges">
+          <span class="estado-badge" [ngClass]="'estado-' + pago.estado.toLowerCase()">{{ pago.estado }}</span>
+          <span class="header-tiempo"><i class="fa-regular fa-clock"></i> {{ tiempoTranscurrido(pago.fechaCreacion) }}</span>
+          <a *ngIf="pago.pagoOrigenId"
+             [routerLink]="['/admin/pagos', pago.pagoOrigenId]"
+             class="reintento-badge">
+            ↩ Reintento de <strong>#{{ pago.pagoOrigenId }}</strong>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedback exito -->
+    <div *ngIf="exito" class="alert-success"><i class="fa-solid fa-circle-check fa-ok"></i> {{ exito }}</div>
+
+    <!-- Grid dos columnas -->
+    <div class="detalle-grid">
+
+      <!-- ── Columna izquierda ── -->
+      <div class="col-left">
+
+        <!-- Jugador info -->
+        <div class="card-section">
+          <h2 class="section-title"><i class="fa-solid fa-user"></i> Jugador</h2>
+          <div class="info-row">
+            <span class="info-label">Jugador</span>
+            <span class="info-val info-bold">{{ pago.nombreCompleto || pago.usuarioUsername }}</span>
+          </div>
+          <div class="info-row" *ngIf="pago.usuarioUsername !== (pago.nombreCompleto || pago.usuarioUsername)">
+            <span class="info-label">Usuario</span>
+            <span class="info-val">{{ pago.usuarioUsername }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Monto declarado</span>
+            <span class="info-val info-monto">${{ pago.monto | number:'1.2-2' }} MXN</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Fecha registro</span>
+            <span class="info-val">{{ pago.fechaCreacion | date:'dd/MM/yyyy h:mm a' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Comprobante</span>
+            <span class="info-val">
+              <span *ngIf="pago.comprobanteWhatsapp" class="tag-comprobante tag-whatsapp"><i class="fa-brands fa-whatsapp"></i> WhatsApp</span>
+              <span *ngIf="!pago.comprobanteWhatsapp && !pago.comprobanteAdmin" class="tag-comprobante tag-archivo"><i class="fa-solid fa-paperclip"></i> Comprobante Admin</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Jugadas incluidas -->
+        <div class="card-section">
+          <h2 class="section-title"><i class="fa-solid fa-bullseye"></i> Jugadas incluidas ({{ pago.totalJugadas }})</h2>
+          <div class="jugada-item" *ngFor="let j of pago.jugadas">
+            <div class="jugada-head">
+              <span class="jugada-id">Ticket #{{ j.id }}</span>
+              <span class="jugada-estado-badge" [ngClass]="'jestado-' + j.estado.toLowerCase()">{{ j.estado }}</span>
+            </div>
+            <p class="jugada-quiniela">{{ j.quinielaNombre }}</p>
+            <div class="jugada-meta">
+              <span><i class="fa-solid fa-sack-dollar"></i> ${{ j.costoQuiniela | number:'1.2-2' }} MXN</span>
+              <span><i class="fa-solid fa-chart-column"></i> {{ j.totalPronosticos }} pronóstico{{ j.totalPronosticos !== 1 ? 's' : '' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resultado de validación (si ya fue procesado) -->
+        <div class="card-section" *ngIf="pago.estado !== 'PENDIENTE'">
+          <h2 class="section-title">
+            @if (pago.estado === 'APROBADO') { <i class="fa-solid fa-circle-check fa-ok"></i> Aprobación }
+            @else if (pago.estado === 'VENCIDO') { <i class="fa-solid fa-rotate-left"></i> Saldo a favor }
+            @else { <i class="fa-solid fa-circle-xmark fa-danger"></i> Rechazo }
+          </h2>
+          <div class="info-row" *ngIf="pago.validadoPorUsername">
+            <span class="info-label">Validado por</span>
+            <span class="info-val info-bold">{{ pago.validadoPorUsername }}</span>
+          </div>
+          <div class="info-row" *ngIf="pago.fechaValidacion">
+            <span class="info-label">Fecha</span>
+            <span class="info-val">{{ pago.fechaValidacion | date:'dd/MM/yyyy h:mm a' }}</span>
+          </div>
+          <div class="observacion-result" *ngIf="pago.observacion">
+            <p class="obs-label">Observación del admin:</p>
+            <p class="obs-text">{{ pago.observacion }}</p>
+          </div>
+          <div class="observacion-result" *ngIf="pago.estado === 'VENCIDO' && pago.montoSaldoAcreditado">
+            <p class="obs-label">Saldo acreditado</p>
+            <p class="obs-text">${{ pago.montoSaldoAcreditado | number:'1.2-2' }} MXN quedó disponible para el jugador.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Columna derecha ── -->
+      <div class="col-right">
+
+        <!-- Comprobante -->
+        <div class="card-section">
+          <h2 class="section-title"><i class="fa-solid fa-paperclip"></i> Comprobante</h2>
+
+          <!-- WhatsApp -->
+          <div *ngIf="pago.comprobanteWhatsapp" class="wa-indicator">
+            <i class="fa-brands fa-whatsapp"></i> El jugador envió el comprobante por WhatsApp
+          </div>
+
+          <!-- Sin comprobante -->
+          <div *ngIf="!pago.comprobanteUrl && !pago.comprobanteWhatsapp" class="sin-comprobante">
+            <span class="sin-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+            <p>Sin comprobante adjunto</p>
+          </div>
+
+          <!-- ── Subir comprobante (admin) ─────────────────────── -->
+          <div *ngIf="!pago.comprobanteUrl" class="upload-admin-section">
+            <h3 class="upload-admin-title"><i class="fa-solid fa-upload"></i> Registrar comprobante</h3>
+
+            <div *ngIf="errorUpload"  class="alert-error-inline"><i class="fa-solid fa-triangle-exclamation"></i> {{ errorUpload }}</div>
+            <div *ngIf="exitoUpload"  class="alert-success-inline"><i class="fa-solid fa-circle-check fa-ok"></i> {{ exitoUpload }}</div>
+
+            <div class="upload-admin-row">
+              <label class="upload-admin-label"><i class="fa-solid fa-paperclip"></i> Archivo de comprobante</label>
+              <label class="dropzone-admin" [class.has-file]="uploadFile">
+                <ng-container *ngIf="uploadFile; else sinArchivo">
+                  <span class="file-name-admin"><i class="fa-regular fa-file"></i> {{ uploadFile.name }}</span>
+                  <span class="file-change-admin">Cambiar archivo</span>
+                </ng-container>
+                <ng-template #sinArchivo>
+                  <span>Seleccionar archivo</span>
+                  <span class="hint-admin">.jpg, .png, .pdf — máx. 5 MB</span>
+                </ng-template>
+                <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf"
+                       (change)="onSeleccionarArchivoAdmin($event)"
+                       style="display:none">
+              </label>
+            </div>
+
+            <button class="btn-subir-admin"
+                    [disabled]="subiendoComprobante"
+                    (click)="subirComprobanteAdmin()">
+              <span *ngIf="subiendoComprobante" class="spinner-btn"></span>
+              @if (subiendoComprobante) { Subiendo... } @else { <i class="fa-solid fa-upload"></i> Guardar comprobante }
+            </button>
+          </div>
+
+          <!-- Comprobante file -->
+          <ng-container *ngIf="pago.comprobanteUrl">
+            <div *ngIf="cargandoImagen" class="img-loading">
+              <div class="spinner-sm"></div>
+              <span>Cargando comprobante...</span>
+            </div>
+
+            <ng-container *ngIf="!cargandoImagen && comprobanteUrl">
+              <img *ngIf="esImagen"
+                   [src]="comprobanteUrl"
+                   alt="Comprobante de pago"
+                   class="comprobante-img"
+                   (click)="abrirComprobante()">
+              <div *ngIf="esPdf" class="pdf-placeholder" (click)="abrirComprobante()">
+                <span class="pdf-icon"><i class="fa-regular fa-file"></i></span>
+                <p>Archivo PDF — clic para abrir</p>
+              </div>
+              <button class="btn-ver-completo" (click)="abrirComprobante()">
+                <i class="fa-solid fa-magnifying-glass"></i> Ver en tamaño completo
+              </button>
+            </ng-container>
+
+            <div *ngIf="!cargandoImagen && !comprobanteUrl" class="sin-comprobante">
+              <span class="sin-icon"><i class="fa-solid fa-circle-xmark"></i></span>
+              <p>No se pudo cargar el archivo</p>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- ── Acciones de validación (solo PENDIENTE) ── -->
+        <div class="card-section acciones-card" *ngIf="pago.estado === 'PENDIENTE'">
+          <h2 class="section-title"><i class="fa-solid fa-bolt"></i> Validar pago</h2>
+
+          <div *ngIf="errorGuardar" class="alert-error-inline"><i class="fa-solid fa-triangle-exclamation"></i> {{ errorGuardar }}</div>
+
+          <div class="form-group">
+            <label class="form-label">
+              Observación
+              <span class="form-hint">(requerida para rechazar)</span>
+            </label>
+            <textarea
+              [(ngModel)]="observacion"
+              class="textarea-obs"
+              rows="3"
+              placeholder="Motivo del rechazo, notas para el jugador...">
+            </textarea>
+          </div>
+
+          <div class="btn-acciones">
+            <button
+              class="btn-aprobar"
+              [disabled]="guardando"
+              (click)="validar('APROBADO')">
+              <span *ngIf="guardandoAccion === 'APROBADO'" class="spinner-btn"></span>
+              <i class="fa-solid fa-circle-check"></i> Aprobar
+            </button>
+            <button
+              class="btn-rechazar"
+              [disabled]="guardando"
+              (click)="validar('RECHAZADO')">
+              <span *ngIf="guardandoAccion === 'RECHAZADO'" class="spinner-btn"></span>
+              <i class="fa-solid fa-circle-xmark"></i> Rechazar
+            </button>
+          </div>
+
+          <p class="acciones-hint">
+            <strong>Aprobar</strong> activa las jugadas del jugador.<br>
+            <strong>Rechazar</strong> devuelve las jugadas al estado CREADA para que pueda reintentar.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+  </ng-container>
+</div>

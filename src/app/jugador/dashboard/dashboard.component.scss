@@ -1,0 +1,86 @@
+@use 'breakpoints' as bp;
+
+.dash-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 2.5rem; padding: 2rem; font-family: 'Segoe UI', sans-serif;
+
+  @include bp.tablet { padding: 1.5rem; }
+  @include bp.mobile  { padding: 1.25rem 0.85rem; }
+}
+
+.welcome {
+  text-align: center; color: #e0e0e0;
+  h1 { font-size: 2rem; margin: 0; i { margin-right: 0.5rem; } }
+  p  { color: #8a8aa8; margin: 0.5rem 0 0; }
+}
+
+.cards { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+
+.dash-card {
+  display: flex; flex-direction: column; gap: 0.5rem; align-items: center;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px; padding: 2rem 2.5rem; width: clamp(160px, 42vw, 220px); text-align: center;
+  text-decoration: none; color: #e0e0e0; transition: all 0.25s;
+
+  @include bp.tablet-up { width: 200px; }
+
+  .icon  { font-size: 2.2rem; }
+  strong { font-size: 1rem; }
+  span   { color: #9b9bc0; font-size: 0.85rem; }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: rgba(79,195,247,0.08); border-color: rgba(79,195,247,0.3);
+              transform: translateY(-3px); }
+  }
+
+  // Acento visual para la acción principal (crear ticket)
+  &:first-child {
+    border-color: rgba(79,195,247,0.35);
+    background: rgba(79,195,247,0.05);
+  }
+
+  &.card-incomplete {
+    border-color: rgba(240,192,64,.35);
+    @media (hover: hover) and (pointer: fine) {
+      &:hover { background: rgba(240,192,64,.07); border-color: rgba(240,192,64,.55); }
+    }
+  }
+}
+
+.card-badge-incomplete {
+  font-size: .75rem;
+  font-weight: 700;
+  padding: .2rem .6rem;
+  border-radius: 20px;
+  background: rgba(240,192,64,.2);
+  color: #f0c040;
+}
+
+// ── Alerta perfil incompleto ──────────────────────────────────────────
+.perfil-alerta {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  background: rgba(240,192,64,.08);
+  border: 1px solid rgba(240,192,64,.3);
+  border-radius: 10px;
+  padding: .75rem 1.25rem;
+  color: #e0e0e0;
+  font-size: .9rem;
+  max-width: 600px;
+  text-align: left;
+
+  .alerta-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+  a {
+    display: inline-block;
+    color: #f0c040;
+    font-weight: 600;
+    text-decoration: none;
+    margin: -0.4rem -0.2rem 0 .15rem;
+    padding: 0.4rem 0.2rem;
+    &:hover { text-decoration: underline; }
+  }
+}

@@ -1,0 +1,229 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1><i class="fa-solid fa-clipboard-list"></i> Mis Pagos</h1>
+      <p class="page-sub">Historial de tus comprobantes y estado de validación</p>
+    </div>
+    <button class="btn-refresh" (click)="cargar()"><i class="fa-solid fa-arrows-rotate"></i> Actualizar</button>
+  </div>
+
+  @if (error)      { <div class="alert-error">{{ error }}</div> }
+  @if (errorSubir)  { <div class="alert-error">{{ errorSubir }}</div> }
+  @if (exitoSubir)  { <div class="alert-success"><i class="fa-solid fa-circle-check fa-ok"></i> {{ exitoSubir }}</div> }
+
+  @if (!cargando && pagos.length > 0) {
+    <!-- Stats chips -->
+    <div class="stats-row">
+      <div class="stat-chip" [class.chip-active]="filtroEstado === 'TODOS'" (click)="setFiltro('TODOS')">
+        <span class="stat-num">{{ pagos.length }}</span>
+        <span class="stat-label">Total</span>
+      </div>
+      <div class="stat-chip pendiente" [class.chip-active]="filtroEstado === 'PENDIENTE'" (click)="setFiltro('PENDIENTE')">
+        <span class="stat-num">{{ count('PENDIENTE') }}</span>
+        <span class="stat-label">Pendientes <i class="fa-regular fa-clock icon-pendiente"></i></span>
+      </div>
+      <div class="stat-chip aprobado" [class.chip-active]="filtroEstado === 'APROBADO'" (click)="setFiltro('APROBADO')">
+        <span class="stat-num">{{ count('APROBADO') }}</span>
+        <span class="stat-label">Aprobados <i class="fa-solid fa-circle-check icon-aprobado"></i></span>
+      </div>
+      <div class="stat-chip rechazado" [class.chip-active]="filtroEstado === 'RECHAZADO'" (click)="setFiltro('RECHAZADO')">
+        <span class="stat-num">{{ count('RECHAZADO') }}</span>
+        <span class="stat-label">Rechazados <i class="fa-solid fa-circle-xmark icon-rechazado"></i></span>
+      </div>
+    </div>
+
+    <!-- Buscador -->
+    <div class="search-bar">
+      <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+      <input type="text"
+             [(ngModel)]="busqueda"
+             placeholder="Buscar por nombre de quiniela..."
+             class="search-input">
+      @if (hayFiltrosActivos) {
+        <button class="btn-clear" (click)="limpiarFiltros()"><i class="fa-solid fa-xmark"></i> Limpiar</button>
+      }
+    </div>
+  }
+
+  @if (cargando) {
+    <div class="loading-state"><div class="spinner"></div><p>Cargando pagos...</p></div>
+  } @else if (pagos.length === 0) {
+    <div class="empty-state">
+      <span><i class="fa-solid fa-credit-card"></i></span>
+      <h3>Sin pagos registrados</h3>
+      <p>Aún no has enviado ningún comprobante.<br>
+         <a routerLink="/jugador/pagar">Registra tu primer pago →</a></p>
+    </div>
+  } @else {
+    <div class="pagos-list">
+      @if (pagosFiltrados.length === 0) {
+        <div class="empty-filter">
+          <span><i class="fa-solid fa-magnifying-glass"></i></span>
+          <p>Ningún pago coincide con los filtros aplicados.</p>
+          <button class="btn-clear-lg" (click)="limpiarFiltros()">Limpiar filtros</button>
+        </div>
+      }
+      @for (pago of pagosFiltrados; track pago.id) {
+        <div class="pago-card" [class]="'card-' + pago.estado.toLowerCase()">
+
+          <!-- ── Encabezado pago ────────────────────────────────── -->
+          <div class="pago-header">
+            <div class="pago-id-wrap">
+              <span class="pago-num">Pago #{{ pago.id }}</span>
+              <span class="estado-badge" [ngClass]="estadoClass(pago.estado)">
+                <i [class]="estadoIcon(pago.estado)"></i> {{ estadoLabel(pago.estado) }}
+              </span>
+            </div>
+            <div class="pago-monto">${{ pago.monto | number:'1.2-2' }} MXN</div>
+          </div>
+
+          <!-- ── Fechas ─────────────────────────────────────────── -->
+          <div class="pago-meta">
+            <span><i class="fa-regular fa-calendar"></i> Enviado: {{ pago.fechaCreacion | date:'dd/MM/yyyy h:mm a' }}</span>
+            @if (pago.fechaValidacion) {
+              <span><i class="fa-solid fa-magnifying-glass"></i> Revisado: {{ pago.fechaValidacion | date:'dd/MM/yyyy h:mm a' }}</span>
+            }
+          </div>
+
+          <!-- ── Observación (si hay) ───────────────────────────── -->
+          @if (pago.observacion && pago.estado !== 'RECHAZADO') {
+            <div class="observacion-box">
+              <strong><i class="fa-regular fa-comment-dots"></i> Observación:</strong> {{ pago.observacion }}
+            </div>
+          }
+
+          <!-- ── Tickets incluidos ──────────────────────────────── -->
+          <div class="jugadas-incluidas">
+            <p class="jugadas-label"><i class="fa-solid fa-ticket"></i> Tickets incluidos ({{ pago.totalJugadas }}):</p>
+            <div class="jugadas-chips">
+              @for (j of pago.jugadas; track j.id) {
+                <span class="jugada-chip">
+                  #{{ j.id }} — {{ j.quinielaNombre }}
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- ── Comprobante ────────────────────────────────────── -->
+          <div class="comprobante-row">
+            @if (pago.comprobanteWhatsapp) {
+              <span class="comprobante-ok"><i class="fa-solid fa-paperclip"></i> Enviaste un comprobante vía WhatsApp de ${{ pago.monto | number:'1.2-2' }} MXN</span>
+            } @else if (pago.comprobanteUrl) {
+              <span class="comprobante-ok"><i class="fa-solid fa-paperclip"></i> Enviaste un comprobante de ${{ pago.monto | number:'1.2-2' }} MXN</span>
+            } @else if (pago.observacion === "Pagado con saldo a favor.") {
+              <span class="comprobante-ok"><i class="fa-solid fa-sack-dollar"></i> Pagado con saldo a favor.</span>
+            } @else {
+              <span class="comprobante-empty">No has enviado ningún comprobante de pago</span>
+            }
+          </div>
+
+          <!-- ── Acciones según estado ──────────────────────────── -->
+          @if (pago.estado === 'PENDIENTE') {
+            <div class="info-banner info-pendiente">
+              <i class="fa-regular fa-clock"></i> <strong>Tu pago está en revisión.</strong> La administración lo validará pronto.
+              Tus jugadas quedarán activas al ser aprobado.
+            </div>
+          }
+
+          
+          @if (pago.estado === 'APROBADO' && pago.saldoAcreditado) {
+            <div class="info-banner info-aprobado">
+              <i class="fa-solid fa-sack-dollar"></i> <strong>Pago acreditado a tu saldo a favor.</strong> Puedes usar este saldo para futuros pagos.
+            </div>
+          } @else if (pago.estado === 'APROBADO') {
+            <div class="info-banner info-aprobado">
+              <i class="fa-solid fa-circle-check"></i> <strong>¡Pago aprobado!</strong> Tus jugadas están activas y participando.
+            </div>
+          }
+
+          @if (pago.estado === 'RECHAZADO') {
+            <div class="info-banner info-rechazado">
+              <i class="fa-solid fa-circle-xmark"></i> <strong>Pago rechazado.</strong>
+              @if (pago.observacion) {
+                Motivo: <em>{{ pago.observacion }}</em>
+              } @else {
+                Registra un nuevo pago para que la administración lo revise.
+              }
+            </div>
+
+            <!-- ── Formulario reintentar ────────────────────────── -->
+            @if (reintentarId !== pago.id) {
+              @if (puedeReintentarPago(pago)) {
+                <button class="btn-subir-comprobante" (click)="abrirReintentar(pago)">
+                  <i class="fa-solid fa-arrows-rotate"></i> Registrar nuevo pago
+                </button>
+              } @else if (tienePagoActivoConMismasJugadas(pago)) {
+                <div class="info-banner info-aprobado">
+                  <i class="fa-solid fa-circle-check"></i> Una o más jugadas de este pago ya están cubiertas por otro pago pendiente o aprobado.
+                </div>
+              } @else {
+                <div class="info-banner info-pendiente">
+                  <i class="fa-solid fa-triangle-exclamation"></i> Ya no puedes registrar un nuevo pago: alguna jugada o su quiniela ya no está disponible.
+                </div>
+              }
+            } @else {
+              <div class="reintentar-form">
+                <p class="reintentar-hint">
+                  Se creará un <strong>nuevo registro de pago</strong> vinculado a este.
+                  Sube tu nuevo comprobante y envíalo.
+                </p>
+
+                <div class="reintentar-row">
+                  <label class="reintentar-label"><i class="fa-solid fa-sack-dollar"></i> Monto a pagar (MXN)</label>
+                  <div class="monto-field-rt">
+                    <span class="monto-prefix-rt">$</span>
+                    <input type="number"
+                           class="input-monto-rt"
+                           [(ngModel)]="reintentarMonto"
+                           [disabled]="true"
+                           min="0.01"
+                           step="0.01"
+                           placeholder="0.00">
+                  </div>
+                </div>
+
+                <div class="reintentar-row">
+                  <label class="reintentar-label"><i class="fa-solid fa-paperclip"></i> Comprobante <span class="opcional-rt">(obligatorio)</span></label>
+                  <label class="dropzone-rt" [class.has-file]="reintentarFile">
+                    @if (reintentarFile) {
+                      <span class="file-name-rt"><i class="fa-regular fa-file"></i> {{ reintentarFile.name }}</span>
+                      <span class="file-change-rt">Cambiar archivo</span>
+                    } @else {
+                      <span>Seleccionar archivo</span>
+                      <span class="hint-rt">.jpg, .png, .pdf — máx. 5 MB</span>
+                    }
+                    <input type="file" accept=".jpg,.jpeg,.png,.pdf"
+                           (change)="onSeleccionarArchivo($event)"
+                           style="display:none">
+                  </label>
+                  @if (!reintentarFile) {
+                    <span class="hint-rt">Debes adjuntar un comprobante para poder enviar el pago.</span>
+                  }
+                </div>
+
+                <div class="reintentar-actions">
+                  <button class="btn-enviar-reintentar"
+                          [disabled]="subiendoId === pago.id || !reintentarFile"
+                          (click)="enviarReintento()">
+                    @if (subiendoId === pago.id) {
+                      <span class="spinner-sm"></span> Enviando...
+                    } @else {
+                      <i class="fa-solid fa-arrows-rotate"></i> Enviar nuevo pago
+                    }
+                  </button>
+                  <button class="btn-cancelar-rt"
+                          [disabled]="subiendoId === pago.id"
+                          (click)="cancelarReintentar()">
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            }
+          }
+
+        </div>
+      }
+    </div>
+  }
+</div>

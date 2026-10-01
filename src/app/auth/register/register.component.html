@@ -1,0 +1,128 @@
+<div class="register-wrapper">
+  <a routerLink="/" class="register-wrapper__brand">
+    <img src="assets/img/logo.png" alt="Logo Quiniela del Canario" class="register-wrapper__brand-logo" />
+    <span>La Quiniela del Canario</span>
+  </a>
+
+  <div class="register-card">
+
+    <div class="register-card__header">
+      <img src="assets/img/logo.png" alt="Logo Quiniela del Canario" class="register-card__logo">
+      <h1 class="register-card__title">Crear cuenta</h1>
+      <p class="register-card__subtitle">Únete y empieza a jugar</p>
+    </div>
+
+    @if (registroExitoso) {
+      <div class="register-card__success">
+        <div class="register-card__success-icon">&#10003;</div>
+        <h2 class="register-card__success-title">¡Cuenta creada!</h2>
+        <p class="register-card__success-msg">Tu cuenta fue registrada correctamente. Ya puedes iniciar sesión.</p>
+        <a routerLink="/login" class="btn-submit btn-submit--full">Iniciar sesión ahora</a>
+      </div>
+    }
+
+    @if (!registroExitoso) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="register-card__form" novalidate>
+
+      <!-- Username -->
+      <div class="field" [class.field--error]="username.invalid && username.touched">
+        <label class="field__label" for="username">Usuario</label>
+        <input
+          id="username"
+          type="text"
+          class="field__input"
+          formControlName="username"
+          placeholder="Tu nombre de usuario"
+          autocomplete="username"
+        />
+        @if (username.invalid && username.touched) {
+          @if (username.errors?.['required']) {
+            <span class="field__error">El usuario es obligatorio</span>
+          } @else if (username.errors?.['minlength']) {
+            <span class="field__error">Mínimo 3 caracteres</span>
+          }
+        }
+      </div>
+
+      <!-- Email -->
+      <div class="field" [class.field--error]="email.invalid && email.touched">
+        <label class="field__label" for="email">Correo electrónico</label>
+        <input
+          id="email"
+          type="email"
+          class="field__input"
+          formControlName="email"
+          placeholder="correo@ejemplo.com"
+          autocomplete="email"
+        />
+        @if (email.invalid && email.touched) {
+          @if (email.errors?.['required']) {
+            <span class="field__error">El correo es obligatorio</span>
+          } @else if (email.errors?.['email']) {
+            <span class="field__error">Correo no válido</span>
+          }
+        }
+      </div>
+
+      <!-- Password -->
+      <div class="field" [class.field--error]="password.invalid && password.touched">
+        <label class="field__label" for="password">Contraseña</label>
+        <input
+          id="password"
+          [type]="showPassword ? 'text' : 'password'"
+          class="field__input"
+          formControlName="password"
+          placeholder="Mínimo 6 caracteres"
+          autocomplete="new-password"
+        />
+        @if (password.invalid && password.touched) {
+          @if (password.errors?.['required']) {
+            <span class="field__error">La contraseña es obligatoria</span>
+          } @else if (password.errors?.['minlength']) {
+            <span class="field__error">Mínimo 6 caracteres</span>
+          }
+        }
+      </div>
+
+      <!-- Confirmar contraseña -->
+      <div class="field" [class.field--error]="confirmPassword.touched && (confirmPassword.invalid || form.errors?.['passwordMismatch'])">
+        <label class="field__label" for="confirmPassword">Repetir contraseña</label>
+        <input
+          id="confirmPassword"
+          [type]="showPassword ? 'text' : 'password'"
+          class="field__input"
+          formControlName="confirmPassword"
+          placeholder="Vuelve a escribir tu contraseña"
+          autocomplete="new-password"
+        />
+        @if (confirmPassword.touched) {
+          @if (confirmPassword.errors?.['required']) {
+            <span class="field__error">Confirma tu contraseña</span>
+          } @else if (form.errors?.['passwordMismatch']) {
+            <span class="field__error">Las contraseñas no coinciden</span>
+          }
+        }
+      </div>
+
+      <!-- Error global -->
+      @if (errorMsg) {
+        <div class="register-card__alert">{{ errorMsg }}</div>
+      }
+
+      <!-- Submit -->
+      <button type="submit" class="btn-submit" [disabled]="loading">
+        @if (loading) {
+          <span class="btn-submit__spinner"></span>
+        }
+        {{ loading ? 'Registrando...' : 'Crear cuenta' }}
+      </button>
+
+    </form>
+
+    <p class="register-card__footer">
+      ¿Ya tienes cuenta? <a routerLink="/login" class="register-card__link">Inicia sesión</a>
+    </p>
+    } <!-- end @if (!registroExitoso) -->
+
+  </div>
+</div>

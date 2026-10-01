@@ -1,0 +1,106 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1><i class="fa-solid fa-trophy fa-gold"></i> Mis Premios</h1>
+      <p class="page-sub">Premios ganados y estado de su entrega</p>
+    </div>
+    <button class="btn-refresh" (click)="cargar()"><i class="fa-solid fa-arrows-rotate"></i> Actualizar</button>
+  </div>
+
+  @if (error) { <div class="alert-error">{{ error }}</div> }
+
+  @if (!cargando && premios.length > 0) {
+    <div class="search-bar">
+      <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+      <input type="text"
+             [(ngModel)]="busqueda"
+             placeholder="Buscar por nombre de quiniela..."
+             class="search-input">
+      @if (hayFiltrosActivos) {
+        <button class="btn-clear" (click)="limpiarFiltros()"><i class="fa-solid fa-xmark"></i> Limpiar</button>
+      }
+    </div>
+  }
+
+  @if (cargando) {
+    <div class="loading-state"><div class="spinner"></div><p>Cargando premios...</p></div>
+  } @else if (premios.length === 0) {
+    <div class="empty-state">
+      <span><i class="fa-solid fa-trophy fa-gold"></i></span>
+      <h3>Aún no tienes premios</h3>
+      <p>Cuando ganes una quiniela, tu premio aparecerá aquí.<br>
+         <a routerLink="/jugador/quinielas">Ver quinielas disponibles →</a></p>
+    </div>
+  } @else {
+    <div class="premios-list">
+      @if (premiosFiltrados.length === 0) {
+        <div class="empty-filter">
+          <span><i class="fa-solid fa-magnifying-glass"></i></span>
+          <p>Ningún premio coincide con la búsqueda.</p>
+          <button class="btn-clear-lg" (click)="limpiarFiltros()">Limpiar filtros</button>
+        </div>
+      }
+      @for (premio of premiosFiltrados; track premio.ganadorId) {
+        <div class="premio-card" [class]="'card-' + premio.estadoPremio.toLowerCase()">
+
+          <div class="premio-header">
+            <div class="premio-titulo-wrap">
+              <span class="premio-quiniela">{{ premio.nombreQuiniela }}</span>
+              <span class="estado-badge" [ngClass]="estadoClass(premio.estadoPremio)">
+                <i [class]="estadoIcon(premio.estadoPremio)"></i> {{ estadoLabel(premio.estadoPremio) }}
+              </span>
+            </div>
+            <div class="premio-monto">${{ premio.montoPremio | number:'1.2-2' }} MXN</div>
+          </div>
+
+          <div class="premio-meta">
+            <span><i class="fa-solid fa-ticket"></i> Jugada #{{ premio.jugadaId }}</span>
+            <span><i class="fa-solid fa-star fa-gold"></i> {{ premio.puntosObtenidos }} pts</span>
+            @if (premio.fechaPagoPremio) {
+              <span><i class="fa-solid fa-money-bill-wave"></i> Pagado: {{ premio.fechaPagoPremio | date:'dd/MM/yyyy h:mm a' }}</span>
+            }
+            @if (premio.fechaConfirmacionJugador) {
+              <span><i class="fa-solid fa-circle-check fa-ok"></i> Confirmado: {{ premio.fechaConfirmacionJugador | date:'dd/MM/yyyy h:mm a' }}</span>
+            }
+          </div>
+
+          @if (errorComprobante[premio.ganadorId]) {
+            <div class="alert-error small">{{ errorComprobante[premio.ganadorId] }}</div>
+          }
+          @if (errorConfirmar[premio.ganadorId]) {
+            <div class="alert-error small">{{ errorConfirmar[premio.ganadorId] }}</div>
+          }
+
+          @if (premio.estadoPremio === 'PENDIENTE') {
+            <div class="info-banner info-pendiente">
+              <i class="fa-regular fa-clock"></i> <strong>Tu premio aún no ha sido pagado.</strong> La administración subirá el comprobante de la transferencia próximamente.
+            </div>
+          }
+
+          @if (premio.estadoPremio === 'PAGADO' || premio.estadoPremio === 'CONFIRMADO') {
+            <div class="premio-acciones">
+              @if (premio.tieneComprobante) {
+                <button class="btn-secondary-premio" (click)="verComprobante(premio)"><i class="fa-solid fa-paperclip"></i> Ver comprobante</button>
+              }
+              @if (premio.estadoPremio === 'PAGADO') {
+                <button class="btn-confirmar" [disabled]="confirmandoId === premio.ganadorId" (click)="confirmarRecepcion(premio)">
+                  @if (confirmandoId === premio.ganadorId) { Confirmando... }
+                  @else { <i class="fa-solid fa-circle-check fa-ok"></i> Confirmar recepción del premio }
+                </button>
+              }
+            </div>
+          }
+
+          @if (premio.estadoPremio === 'CONFIRMADO') {
+            <div class="info-banner info-confirmado">
+              <i class="fa-solid fa-circle-check fa-ok"></i> <strong>Recepción confirmada.</strong> Gracias por jugar y confiar en nosotros.
+            </div>
+          }
+
+        </div>
+      }
+    </div>
+  }
+
+</div>

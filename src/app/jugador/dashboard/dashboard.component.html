@@ -1,0 +1,43 @@
+<div class="dash-page">
+  <div class="welcome">
+    <h1><i class="fa-solid fa-futbol"></i> Bienvenido</h1>
+    <p>Elige una opción para comenzar</p>
+  </div>
+
+  @if (perfilIncompleto) {
+    <div class="perfil-alerta">
+      <span class="alerta-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+      <span>
+        Tu perfil está incompleto. Debes completarlo antes de crear un ticket.
+        <a routerLink="/jugador/perfil">Completar perfil →</a>
+      </span>
+    </div>
+  }
+
+  <div class="cards">
+    <a routerLink="/jugador/quinielas" class="dash-card">
+      <span class="icon"><i class="fa-solid fa-clipboard-list"></i></span>
+      <strong>Quinielas Disponibles</strong>
+      <span>Únete a una quiniela activa y crea tu ticket</span>
+    </a>
+    <a routerLink="/jugador/mis-jugadas" class="dash-card">
+      <span class="icon"><i class="fa-solid fa-ticket"></i></span>
+      <strong>Mis Jugadas</strong>
+      <span>Revisa el estado de tus tickets y pronósticos</span>
+    </a>
+    <a routerLink="/jugador/perfil" class="dash-card" [class.card-incomplete]="perfilIncompleto">
+      <span class="icon"><i class="fa-solid fa-user"></i></span>
+      <strong>Mi Perfil</strong>
+      @if (perfilIncompleto) {
+        <span class="card-badge-incomplete">Incompleto</span>
+      } @else {
+        <span>Consulta y actualiza tus datos personales</span>
+      }
+    </a>
+    <a routerLink="/jugador/reglas" class="dash-card">
+      <span class="icon"><i class="fa-solid fa-scroll"></i></span>
+      <strong>Reglas del Juego</strong>
+      <span>Conoce la puntuación, el desempate y los premios</span>
+    </a>
+  </div>
+</div>

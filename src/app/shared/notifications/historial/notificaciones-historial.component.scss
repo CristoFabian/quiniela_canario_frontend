@@ -1,0 +1,191 @@
+@use 'breakpoints' as bp;
+
+$accent:     #4fc3f7;
+$gold:       #f0c040;
+$border:     rgba(255, 255, 255, 0.08);
+$text:       #e0e0e0;
+$text-muted: #8a8aa8;
+$card-bg:    rgba(255, 255, 255, 0.04);
+
+.page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: $text;
+  padding: 2rem;
+  font-family: 'Segoe UI', sans-serif;
+
+  @include bp.tablet { padding: 1.5rem; }
+  @include bp.mobile  { padding: 1rem 0.85rem; }
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+  h1 { margin: 0; font-size: 1.6rem; }
+  .page-sub { margin: 0.25rem 0 0; color: $text-muted; font-size: 0.88rem; }
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filtros {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chip {
+  border: 1px solid $border;
+  background: transparent;
+  color: $text-muted;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  min-height: 40px;
+  transition: all 0.2s;
+
+  &.active { background: rgba(79, 195, 247, 0.15); border-color: $accent; color: $accent; font-weight: 600; }
+  &:hover:not(.active) { background: rgba(255, 255, 255, 0.05); }
+}
+
+.btn-secundario {
+  border: 1px solid $border;
+  background: rgba(255, 255, 255, 0.04);
+  color: $text;
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  min-height: 40px;
+
+  &:hover { background: rgba(255, 255, 255, 0.08); }
+}
+
+.alert-error {
+  background: rgba(220, 50, 50, 0.12);
+  border: 1px solid rgba(220, 50, 50, 0.35);
+  color: #ff7070;
+  padding: 0.8rem 1.2rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.loading-state {
+  display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 4rem; color: $text-muted;
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(255, 255, 255, 0.1); border-top-color: $gold; border-radius: 50%; animation: spin 0.8s linear infinite; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: $text-muted;
+  span { font-size: 2rem; display: block; margin-bottom: 0.75rem; }
+}
+
+.grupo { margin-bottom: 1.75rem; }
+.grupo-titulo {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $text-muted;
+  margin: 0 0 0.6rem;
+}
+
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.notif-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  width: 100%;
+  text-align: left;
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+
+  &:hover { background: rgba(255, 255, 255, 0.06); }
+  &.unread { border-color: rgba(79, 195, 247, 0.4); background: rgba(79, 195, 247, 0.06); }
+
+  @include bp.mobile {
+    flex-wrap: wrap;
+  }
+}
+
+.notif-icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 1rem;
+
+  &.notif-ok     { color: #4caf50; }
+  &.notif-warn   { color: $gold; }
+  &.notif-danger { color: #ff5252; }
+  &.notif-info   { color: $accent; }
+  &.notif-gold   { color: #ffd700; }
+}
+
+.notif-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.notif-titulo  { font-weight: 700; font-size: 0.92rem; }
+.notif-mensaje { color: $text-muted; font-size: 0.82rem; line-height: 1.4; }
+.notif-fecha   { color: $text-muted; font-size: 0.72rem; margin-top: 0.15rem; }
+
+.notif-estado {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(79, 195, 247, 0.18);
+  color: $accent;
+
+  &.leida { background: rgba(255, 255, 255, 0.06); color: $text-muted; }
+}
+
+.paginador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  color: $text-muted;
+  font-size: 0.82rem;
+
+  button {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid $border;
+    background: rgba(255, 255, 255, 0.04);
+    color: $text;
+    cursor: pointer;
+
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+    &:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); }
+  }
+}
